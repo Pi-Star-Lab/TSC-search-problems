@@ -18,8 +18,6 @@ from uncertain_curriculum import UncertainityCurriculum
 def get_state_generator(domain, size):
 
     base_fn = None
-    def generator(size):
-        return base_fn(size, dist)
     if domain == "SlidingTile":
         return lambda distance: SlidingTilePuzzle.generate_state(size, distance)
     elif domain == "Witness":
@@ -186,7 +184,7 @@ def main():
     parameters = parser.parse_args()
 
     states = {}
-    domain_sizes = {"SlidingTile":5} #TODO: add witness and sokoban
+    domain_sizes = {"SlidingTile":3} #TODO: add witness and sokoban
 
     if parameters.problem_domain == 'SlidingTile':
         puzzle_files = [f for f in listdir(parameters.problems_folder) if isfile(join(parameters.problems_folder, f))]
@@ -298,7 +296,8 @@ def main():
         elif parameters.learning_mode == "curr":
 
             state_gen = get_state_generator(parameters.problem_domain,\
-                            domain_sizes[parameters.problem_domain]),
+                            domain_sizes[parameters.problem_domain])
+
             curriculum = UncertainityCurriculum(parameters.model_name, states,
                                   ncpus=ncpus,
                                   state_generator = state_gen,

@@ -19,6 +19,10 @@ class UncertainityCurriculum:
         self._state_gen = state_generator
         self._kmax = 10
 
+        ### global variables could be taken as input
+        self._states_per_difficulty = 256
+        self._network_confidence = {} #TODO: figure out this part
+
         self._log_folder = 'training_logs/'
         self._models_folder = 'trained_models_online/' + self._model_name + "_curriculum"
 
@@ -36,15 +40,15 @@ class UncertainityCurriculum:
         memory = Memory()
         current_solved_puzzles = set()
         number_solved = 0
+        total_expanded = 0
+        total_generated = 0
+
 
         for name, state in states.items():
 
             # whats name of a state?
             batch_problems[name] = state
 
-            """
-            fix this
-            """
             if len(batch_problems) < self._batch_size and \
                     len(states) - number_solved  > self._batch_size:
                 continue
@@ -89,29 +93,38 @@ class UncertainityCurriculum:
         number_solved = 0
         total_expanded = 0
         total_generated = 0
-
-        #budget = self._initial_budget
+        difficulty = 1
+        diameter = 40 ##TODO fix this constant
         budget = self._max_budget
-        start = time.time()
 
-        number_solved = 0
+        while difficulty < diameter:
+            number_solved = 0
 
-        states = self._state_gen(100, 3)
-        self.solve(states, planner = planner, nn_model = nn_model, \
-                budget = budget, update = True)
+            states = {}
+            for i in range(self._states_per_difficulty):
+                states[i] = self._state_gen(difficulty)
 
-        end = time.time()
-        with open(join(self._log_folder + 'training_bootstrap_' + self._model_name + "_curriculum"), 'a') as results_file:
-            results_file.write(("{:d}, {:d}, {:d}, {:d}, {:d}, {:d}, {:f} ".format(iteration,
-                                                                             number_solved,
-                                                                             3,
-                                                                             budget,
-                                                                             total_expanded,
-                                                                             total_generated,
-                                                                             end-start)))
-            results_file.write('\n')
+            start = time.time()
+            self.solve(states, planner = planner, nn_model = nn_model, \
+                    budget = budget, update = True)
 
-        print('Number solved: ', number_solved)
+            end = time.time()
+            with open(join(self._log_folder + 'training_bootstrap_' + self._model_name + "_curriculum"), 'a') as results_file:
+                results_file.write(("{:d}, {:d}, {:d}, {:d}, {:d}, {:d}, {:d}, {:f} ".format(difficulty,
+                                                                                iteration,
+                                                                                 number_solved,
+                                                                                 3,
+                                                                                 budget,
+                                                                                 total_expanded,
+                                                                                 total_generated,
+                                                                                 end-start)))
+                results_file.write('\n')
 
-        iteration += 1
+            print('Number solved: ', number_solved)
 
+            if self.solvable():
+                difficulty += 1
+            iteration += 1
+
+    def solvable(self):
+        return True

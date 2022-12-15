@@ -187,7 +187,7 @@ class SlidingTilePuzzle(Environment):
         generate a STP instance by taking n steps from goal
         size: 4,9,16,25 ..
         """
-        assert(int(math.sqrt(size)) ** 2 == size)
+        size = size ** 2
         tiles = [x for x in range(size)]
 
         goal_state = SlidingTilePuzzle(tiles)
