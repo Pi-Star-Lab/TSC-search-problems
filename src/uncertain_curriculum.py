@@ -22,6 +22,7 @@ class UncertainityCurriculum:
         ### global variables could be taken as input
         self._states_per_difficulty = 256
         self._network_confidence = {} #TODO: figure out this part
+        self._percentage_store = 0.05 # 5 percent
 
         self._log_folder = 'training_logs/'
         self._models_folder = 'trained_models_online/' + self._model_name + "_curriculum"
@@ -43,7 +44,6 @@ class UncertainityCurriculum:
         total_expanded = 0
         total_generated = 0
 
-
         for name, state in states.items():
 
             # whats name of a state?
@@ -53,11 +53,6 @@ class UncertainityCurriculum:
                     len(states) - number_solved  > self._batch_size:
                 continue
 
-            """
-            TODO: delete this comment
-            1) needs batch_problems
-            rest until batch_problems.clear() looks cool and
-            """
             with ProcessPoolExecutor(max_workers = self._ncpus) as executor:
                 args = ((state, name, budget, nn_model) for name, state in batch_problems.items())
                 results = executor.map(planner.search_for_learning, args)
@@ -104,6 +99,7 @@ class UncertainityCurriculum:
             for i in range(self._states_per_difficulty):
                 states[i] = self._state_gen(difficulty)
 
+            self._network_confidence
             start = time.time()
             self.solve(states, planner = planner, nn_model = nn_model, \
                     budget = budget, update = True)
@@ -122,9 +118,11 @@ class UncertainityCurriculum:
 
             print('Number solved: ', number_solved)
 
-            if self.solvable():
+            if self.solvable(nn_model):
                 difficulty += 1
             iteration += 1
 
-    def solvable(self):
+    def solvable(self, nn):
+
+        output = nn.multiple_predict(x)
         return True
