@@ -103,17 +103,18 @@ class UncertainityCurriculum:
         diameter = 28 ##TODO fix this constant
         budget = self._max_budget
 
-        ## TODO: remove this TMP! 
+        ## TODO: remove this TMP!
+
+        """
         states = {}
         import sys
         import pickle
         for i in range(self._states_per_difficulty):
             states[i] = self._state_gen(difficulty)
         with open("stp_3_times_3_test", 'wb') as fname:
-            pickle.dump(states, fname) 
+            pickle.dump(states, fname)
         sys.exit(0)
-
-
+        """
         while difficulty < diameter:
             number_solved = 0
 
@@ -123,8 +124,8 @@ class UncertainityCurriculum:
 
             self._network_confidence
             start = time.time()
-            number_solved, total_expanded, total_generated = self.solve(states,\
-                    planner = planner, nn_model = nn_model, budget = budget, update = True)
+            number_solved, total_expanded, total_generated = self.solve(states,
+                        planner=planner, nn_model=nn_model, budget=budget, update=True)
 
             end = time.time()
             with open(join(self._log_folder + 'training_bootstrap_' + self._model_name + "_curriculum"), 'a') as results_file:
@@ -137,7 +138,7 @@ class UncertainityCurriculum:
                                                                                  total_generated,
                                                                                  end-start)))
                 results_file.write('\n')
-            
+
             print('Percent solved: {}\t Difficulty: {}'.format(number_solved / len(states), difficulty))
 
             self._expansions.append(total_expanded)
@@ -148,10 +149,11 @@ class UncertainityCurriculum:
             if self.solvable(nn_model, number_solved, total_expanded, total_generated):
                 difficulty += 1
             iteration += 1
+        self.show_results()
 
     def solvable(self, nn, number_solved, total_expanded, total_generated): #maybe just use nn
-        
-        if number_solved / self._states_per_difficulty > 0.1:
+
+        if number_solved / self._states_per_difficulty > 0.9:
             return True
         else:
             return False
