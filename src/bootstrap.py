@@ -5,7 +5,7 @@ from models.memory import Memory
 from concurrent.futures.process import ProcessPoolExecutor
 
 class Bootstrap:
-    def __init__(self, states, output, ncpus=1, initial_budget=2000, gradient_steps=10):
+    def __init__(self, states, output, ncpus=1, state_gen = None, initial_budget=2000, gradient_steps=10):
         self._states = states
         self._model_name = output
         self._number_problems = len(states)
@@ -15,8 +15,14 @@ class Bootstrap:
         self._gradient_steps = gradient_steps
 #         self._k = ncpus * 3
         self._batch_size = 32
+        self._state_gen = state_gen
 
         self._kmax = 10
+
+        # store number of expansions and performance
+        self._test_set = pickle.load(open('stp_3_times_3_test', 'rb')) ##TAKE THIS OUTSIDE
+        self._expansions = [0]
+        self._performance = [0] ## accuracy
 
         self._log_folder = 'training_logs/'
         self._models_folder = 'trained_models_online/' + self._model_name + "_bootstrap"
@@ -38,6 +44,15 @@ class Bootstrap:
         start = time.time()
 
         current_solved_puzzles = set()
+
+        """
+        way to create problems with smaller instance sizes
+        """
+        states = {}
+        for i in range(len(self._states)):
+            states[i] = self._state_gen(50)
+
+        self._states =  states
 
         while len(current_solved_puzzles) < self._number_problems:
             number_solved = 0
@@ -98,3 +113,6 @@ class Bootstrap:
 
             iteration += 1
 
+    def show_results(self):
+        print(self._expansions)
+        print(self._performance)

@@ -179,7 +179,7 @@ class SlidingTilePuzzle(Environment):
                 print()
 
     def __str__(self):
-        return " ".join(self._tiles)
+        return " ".join(map(str, self._tiles))
 
     @staticmethod
     def generate_state(size:int, n_steps_goal:int):

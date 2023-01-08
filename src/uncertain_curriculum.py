@@ -3,6 +3,7 @@ import time
 from os.path import join
 from models.memory import Memory
 from concurrent.futures.process import ProcessPoolExecutor
+import pickle
 
 class UncertainityCurriculum:
     def __init__(self, model_name, sample_problems, ncpus=1, \
@@ -18,6 +19,11 @@ class UncertainityCurriculum:
 
         self._state_gen = state_generator
         self._kmax = 10
+
+        # store number of expansions and performance
+        self._test_set = pickle.load(open('stp_3_times_3_test', 'rb')) ##TAKE THIS OUTSIDE
+        self._expansions = [0]
+        self._performance = [0] ## accuracy
 
         ### global variables could be taken as input
         self._states_per_difficulty = 256
@@ -36,6 +42,8 @@ class UncertainityCurriculum:
     def solve(self, states, planner, nn_model, budget, update:bool):
         """
         states: an iterable object containing name, state
+        returns:
+        solved, expanded, generate
         """
         batch_problems = {}
         memory = Memory()
@@ -76,11 +84,14 @@ class UncertainityCurriculum:
             if memory.number_trajectories() > 0 and update:
                 for _ in range(self._gradient_steps):
                     loss = nn_model.train_with_memory(memory)
-                    print('Loss: ', loss)
+                    if _ % 10 == 0:
+                        print('Iteration: {} Loss: {}'.format(_, loss))
                 memory.clear()
                 nn_model.save_weights(join(self._models_folder, 'model_weights'))
 
             batch_problems.clear()
+        return (number_solved, total_expanded, total_generated)
+
 
 
     def solve_uniform_online(self, planner, nn_model):
@@ -89,8 +100,19 @@ class UncertainityCurriculum:
         total_expanded = 0
         total_generated = 0
         difficulty = 1
-        diameter = 40 ##TODO fix this constant
+        diameter = 28 ##TODO fix this constant
         budget = self._max_budget
+
+        ## TODO: remove this TMP! 
+        states = {}
+        import sys
+        import pickle
+        for i in range(self._states_per_difficulty):
+            states[i] = self._state_gen(difficulty)
+        with open("stp_3_times_3_test", 'wb') as fname:
+            pickle.dump(states, fname) 
+        sys.exit(0)
+
 
         while difficulty < diameter:
             number_solved = 0
@@ -101,8 +123,8 @@ class UncertainityCurriculum:
 
             self._network_confidence
             start = time.time()
-            self.solve(states, planner = planner, nn_model = nn_model, \
-                    budget = budget, update = True)
+            number_solved, total_expanded, total_generated = self.solve(states,\
+                    planner = planner, nn_model = nn_model, budget = budget, update = True)
 
             end = time.time()
             with open(join(self._log_folder + 'training_bootstrap_' + self._model_name + "_curriculum"), 'a') as results_file:
@@ -115,14 +137,30 @@ class UncertainityCurriculum:
                                                                                  total_generated,
                                                                                  end-start)))
                 results_file.write('\n')
+            
+            print('Percent solved: {}\t Difficulty: {}'.format(number_solved / len(states), difficulty))
 
-            print('Number solved: ', number_solved)
+            self._expansions.append(total_expanded)
+            test_solved, test_expanded, test_generated = self.solve(self._test_set,\
+                    planner = planner, nn_model = nn_model, budget = budget, update = False)
 
-            if self.solvable(nn_model):
+            self._performance.append(test_expanded)
+            if self.solvable(nn_model, number_solved, total_expanded, total_generated):
                 difficulty += 1
             iteration += 1
 
-    def solvable(self, nn):
-
+    def solvable(self, nn, number_solved, total_expanded, total_generated): #maybe just use nn
+        
+        if number_solved / self._states_per_difficulty > 0.1:
+            return True
+        else:
+            return False
+        """
+        TODO: write code on content below return statement
+        """
         output = nn.multiple_predict(x)
         return True
+
+    def show_results(self):
+        print(self._expansions)
+        print(self._performance)

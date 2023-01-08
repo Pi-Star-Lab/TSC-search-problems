@@ -287,16 +287,17 @@ def main():
         nn_model = manager.KerasModel()
         curriculum = None
 
+        state_gen = get_state_generator(parameters.problem_domain,\
+                        domain_sizes[parameters.problem_domain])
         if parameters.learning_mode == "bootstrap":
             curriculum = Bootstrap(states, parameters.model_name,
                                   ncpus=ncpus,
+                                  state_generator = state_gen,
                                   initial_budget=int(parameters.search_budget),
                                   gradient_steps=int(parameters.gradient_steps))
 
         elif parameters.learning_mode == "curr":
 
-            state_gen = get_state_generator(parameters.problem_domain,\
-                            domain_sizes[parameters.problem_domain])
 
             curriculum = UncertainityCurriculum(parameters.model_name, states,
                                   ncpus=ncpus,
