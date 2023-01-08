@@ -26,7 +26,7 @@ class UncertainityCurriculum:
         self._performance = [0] ## accuracy
 
         ### global variables could be taken as input
-        self._states_per_difficulty = 256
+        self._states_per_difficulty = 1024
         self._network_confidence = {} #TODO: figure out this part
         self._percentage_store = 0.05 # 5 percent
 
@@ -74,6 +74,7 @@ class UncertainityCurriculum:
                 if has_found_solution:
                     memory.add_trajectory(trajectory)
 
+
                 #perhaps do not count current solved puzzles
                 if has_found_solution and puzzle_name not in current_solved_puzzles:
                     number_solved += 1
@@ -101,7 +102,7 @@ class UncertainityCurriculum:
         total_generated = 0
         difficulty = 1
         diameter = 28 ##TODO fix this constant
-        budget = self._max_budget
+        budget = self._initial_budget
 
         ## TODO: remove this TMP!
 
@@ -110,7 +111,7 @@ class UncertainityCurriculum:
         import sys
         import pickle
         for i in range(self._states_per_difficulty):
-            states[i] = self._state_gen(difficulty)
+            states[i] = self._state_gen(100)
         with open("stp_3_times_3_test", 'wb') as fname:
             pickle.dump(states, fname)
         sys.exit(0)
@@ -139,6 +140,7 @@ class UncertainityCurriculum:
                                                                                  end-start)))
                 results_file.write('\n')
 
+            print(number_solved, len(states))
             print('Percent solved: {}\t Difficulty: {}'.format(number_solved / len(states), difficulty))
 
             self._expansions.append(total_expanded)
@@ -153,7 +155,7 @@ class UncertainityCurriculum:
 
     def solvable(self, nn, number_solved, total_expanded, total_generated): #maybe just use nn
 
-        if number_solved / self._states_per_difficulty > 0.9:
+        if number_solved / self._states_per_difficulty > 0.65:
             return True
         else:
             return False
