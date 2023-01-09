@@ -15,7 +15,7 @@ class Bootstrap:
         self._initial_budget = initial_budget
         self._gradient_steps = gradient_steps
 #         self._k = ncpus * 3
-        self._max_states = 1024
+        self._max_states = 2048
         self._batch_size = 32
         self._state_gen = state_generator
 
@@ -104,6 +104,7 @@ class Bootstrap:
 
         current_solved_puzzles = set()
 
+        test_solve = 0
         """
         way to create problems with smaller instance sizes
         TODO: fix this!
@@ -114,7 +115,8 @@ class Bootstrap:
             states[i] = self._state_gen(50)
 
         self._states =  states
-        while len(current_solved_puzzles) < self._number_problems:
+        #while len(current_solved_puzzles) < self._number_problems:
+        while  test_solve < 0.9: #replacing for comparison
             print("Iteration: {}:".format(iteration))
             number_solved = 0
 
@@ -173,12 +175,13 @@ class Bootstrap:
 
             self._expansions.append(total_expanded)
             test_solved, test_expanded, test_generated = self.solve(self._test_set,\
-                    planner = planner, nn_model = nn_model, budget = budget, update = False)
+                    planner = planner, nn_model = nn_model, budget = 400, update = False) #TODO: remove this hardcode
 
-            self._performance.append(test_solved)
 
+            test_solve = test_solved/len(self._test_set)
+            self._performance.append(test_solve)
             print('Training solve: {}%\t Test Solve: {}%'.format(
-                number_solved / len(states), test_solved/len(self._test_set)))
+                number_solved / len(states), test_solve))
 
             iteration += 1
 

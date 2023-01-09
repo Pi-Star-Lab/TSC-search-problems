@@ -26,7 +26,7 @@ class UncertainityCurriculum:
         self._performance = [0] ## accuracy
 
         ### global variables could be taken as input
-        self._states_per_difficulty = 1024
+        self._states_per_difficulty = 256
         self._network_confidence = {} #TODO: figure out this part
         self._percentage_store = 0.05 # 5 percent
 
@@ -74,7 +74,6 @@ class UncertainityCurriculum:
                 if has_found_solution:
                     memory.add_trajectory(trajectory)
 
-
                 #perhaps do not count current solved puzzles
                 if has_found_solution and puzzle_name not in current_solved_puzzles:
                     number_solved += 1
@@ -100,10 +99,10 @@ class UncertainityCurriculum:
         number_solved = 0
         total_expanded = 0
         total_generated = 0
-        difficulty = 1
+        difficulty = 4
         diameter = 28 ##TODO fix this constant
         budget = self._initial_budget
-
+        test_solve = 0
         ## TODO: remove this TMP!
 
         """
@@ -116,7 +115,7 @@ class UncertainityCurriculum:
             pickle.dump(states, fname)
         sys.exit(0)
         """
-        while difficulty < diameter:
+        while test_solve < 0.9:
             number_solved = 0
 
             states = {}
@@ -140,14 +139,16 @@ class UncertainityCurriculum:
                                                                                  end-start)))
                 results_file.write('\n')
 
-            print(number_solved, len(states))
-            print('Percent solved: {}\t Difficulty: {}'.format(number_solved / len(states), difficulty))
 
-            self._expansions.append(total_expanded)
+            self._expansions.append(self._expansions[-1] + total_expanded)
             test_solved, test_expanded, test_generated = self.solve(self._test_set,\
                     planner = planner, nn_model = nn_model, budget = budget, update = False)
 
-            self._performance.append(test_expanded)
+            test_solve = test_solved / len(self._test_set)
+            print(test_solved, len(self._test_set))
+            print('Train solved: {}\t Test Solved:{}% Difficulty: {}'.format(
+                number_solved / len(states), test_solve, difficulty))
+            self._performance.append(test_solve)
             if self.solvable(nn_model, number_solved, total_expanded, total_generated):
                 difficulty += 1
             iteration += 1
@@ -155,7 +156,7 @@ class UncertainityCurriculum:
 
     def solvable(self, nn, number_solved, total_expanded, total_generated): #maybe just use nn
 
-        if number_solved / self._states_per_difficulty > 0.65:
+        if number_solved / self._states_per_difficulty > 0.75:
             return True
         else:
             return False
