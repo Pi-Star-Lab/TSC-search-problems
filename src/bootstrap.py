@@ -25,6 +25,9 @@ class Bootstrap:
         self._test_set = pickle.load(open('stp_3_times_3_test', 'rb')) ##TAKE THIS OUTSIDE
         self._expansions = [0]
         self._performance = [0] ## accuracy
+        self._time = [0]
+        self._solution_quality = [0]
+        self._solution_expansions = [0]
 
         self._log_folder = 'training_logs/'
         self._models_folder = 'trained_models_online/' + self._model_name + "_bootstrap"
@@ -47,6 +50,7 @@ class Bootstrap:
         number_solved = 0
         total_expanded = 0
         total_generated = 0
+        sum_sol_cost = 0
 
         for name, state in states.items():
 
@@ -68,6 +72,8 @@ class Bootstrap:
                 puzzle_name = result[4]
 
                 if has_found_solution:
+                    print(trajectory.get_solution_costs())
+                    sum_sol_cost += trajectory.get_solution_costs()[-1]
                     memory.add_trajectory(trajectory)
 
                 #perhaps do not count current solved puzzles
@@ -88,7 +94,7 @@ class Bootstrap:
                 nn_model.save_weights(join(self._models_folder, 'model_weights'))
 
             batch_problems.clear()
-        return (number_solved, total_expanded, total_generated)
+        return (sum_sol_cost, number_solved, total_expanded, total_generated)
 
 
 
@@ -100,7 +106,6 @@ class Bootstrap:
 
         budget = self._initial_budget
         memory = Memory()
-        start = time.time()
 
         current_solved_puzzles = set()
 
@@ -116,7 +121,8 @@ class Bootstrap:
 
         self._states =  states
         #while len(current_solved_puzzles) < self._number_problems:
-        while  test_solve < 0.9: #replacing for comparison
+        while test_solve < 1: #replacing for comparison
+            start = time.time()
             print("Iteration: {}:".format(iteration))
             number_solved = 0
 
@@ -174,11 +180,13 @@ class Bootstrap:
                 print('Budget: ', budget)
 
             self._expansions.append(total_expanded)
-            test_solved, test_expanded, test_generated = self.solve(self._test_set,\
+            test_sol_qual, test_solved, test_expanded, test_generated = self.solve(self._test_set,\
                     planner = planner, nn_model = nn_model, budget = 400, update = False) #TODO: remove this hardcode
 
-
             test_solve = test_solved/len(self._test_set)
+            self._time.append(self._time[-1] + (end - start))
+            self._solution_quality.append(test_sol_qual / test_solved)
+            self._solution_expansions.append(test_expanded / test_solved)
             self._performance.append(test_solve)
             print('Training solve: {}%\t Test Solve: {}%'.format(
                 number_solved / len(states), test_solve))
@@ -190,3 +198,6 @@ class Bootstrap:
     def show_results(self):
         print(self._expansions)
         print(self._performance)
+        print(self._solution_quality)
+        print(self._solution_expansions)
+        print(self._time)

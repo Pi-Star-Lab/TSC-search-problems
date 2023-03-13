@@ -24,6 +24,9 @@ class UncertainityCurriculum:
         self._test_set = pickle.load(open('stp_3_times_3_test', 'rb')) ##TAKE THIS OUTSIDE
         self._expansions = [0]
         self._performance = [0] ## accuracy
+        self._time = [0]
+        self._solution_quality = [0]
+        self._solution_expansions = [0]
 
         ### global variables could be taken as input
         self._states_per_difficulty = 256
@@ -51,6 +54,7 @@ class UncertainityCurriculum:
         number_solved = 0
         total_expanded = 0
         total_generated = 0
+        sum_sol_cost = 0
 
         for name, state in states.items():
 
@@ -72,6 +76,8 @@ class UncertainityCurriculum:
                 puzzle_name = result[4]
 
                 if has_found_solution:
+                    #print(trajectory.get_solution_costs())
+                    sum_sol_cost += trajectory.get_solution_costs()[-1]
                     memory.add_trajectory(trajectory)
 
                 #perhaps do not count current solved puzzles
@@ -90,7 +96,7 @@ class UncertainityCurriculum:
                 nn_model.save_weights(join(self._models_folder, 'model_weights'))
 
             batch_problems.clear()
-        return (number_solved, total_expanded, total_generated)
+        return (sum_sol_cost, number_solved, total_expanded, total_generated)
 
 
 
@@ -100,7 +106,6 @@ class UncertainityCurriculum:
         total_expanded = 0
         total_generated = 0
         difficulty = 4
-        diameter = 28 ##TODO fix this constant
         budget = self._initial_budget
         test_solve = 0
         ## TODO: remove this TMP!
@@ -116,15 +121,14 @@ class UncertainityCurriculum:
         sys.exit(0)
         """
         while test_solve < 0.9:
+            start = time.time()
             number_solved = 0
 
             states = {}
             for i in range(self._states_per_difficulty):
                 states[i] = self._state_gen(difficulty)
 
-            self._network_confidence
-            start = time.time()
-            number_solved, total_expanded, total_generated = self.solve(states,
+            _, number_solved, total_expanded, total_generated = self.solve(states,
                         planner=planner, nn_model=nn_model, budget=budget, update=True)
 
             end = time.time()
@@ -141,14 +145,18 @@ class UncertainityCurriculum:
 
 
             self._expansions.append(self._expansions[-1] + total_expanded)
-            test_solved, test_expanded, test_generated = self.solve(self._test_set,\
+            test_sol_qual, test_solved, test_expanded, test_generated = self.solve(self._test_set,\
                     planner = planner, nn_model = nn_model, budget = budget, update = False)
 
             test_solve = test_solved / len(self._test_set)
             print(test_solved, len(self._test_set))
             print('Train solved: {}\t Test Solved:{}% Difficulty: {}'.format(
                 number_solved / len(states), test_solve, difficulty))
+
+            self._time.append(self._time[-1] + (end - start))
             self._performance.append(test_solve)
+            self._solution_quality.append(test_sol_qual / test_solved)
+            self._solution_expansions.append(test_expanded / test_solved)
             if self.solvable(nn_model, number_solved, total_expanded, total_generated):
                 difficulty += 1
             iteration += 1
@@ -169,3 +177,6 @@ class UncertainityCurriculum:
     def show_results(self):
         print(self._expansions)
         print(self._performance)
+        print(self._solution_quality)
+        print(self._solution_expansions)
+        print(self._time)
