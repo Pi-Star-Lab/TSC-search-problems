@@ -1,9 +1,12 @@
 .DS_Store
 .project
 .pydevproject
-
 */__pycache__/*
 __pycache__
 logs/
 trained_models/
 venv/
+*.sw*
+*.out
+*.png
+*.jpg

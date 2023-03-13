@@ -5,20 +5,19 @@ from models.memory import Memory
 from concurrent.futures.process import ProcessPoolExecutor
 import pickle
 
-class Bootstrap:
-    def __init__(self, states, output, ncpus=1, state_generator = None, initial_budget=2000, gradient_steps=10):
-        self._states = states
-        self._model_name = output
-        self._number_problems = len(states)
+class UncertainityCurriculum:
+    def __init__(self, model_name, sample_problems, ncpus=1, \
+            state_generator = None, initial_budget=2000, gradient_steps=10):
+        self._model_name = model_name
+        self._sample_problems = sample_problems
 
         self._ncpus = ncpus
         self._initial_budget = initial_budget
+        self._max_budget = initial_budget * 2
         self._gradient_steps = gradient_steps
-#         self._k = ncpus * 3
-        self._max_states = 2048
         self._batch_size = 32
-        self._state_gen = state_generator
 
+        self._state_gen = state_generator
         self._kmax = 10
 
         # store number of expansions and performance
@@ -29,8 +28,13 @@ class Bootstrap:
         self._solution_quality = [0]
         self._solution_expansions = [0]
 
+        ### global variables could be taken as input
+        self._states_per_difficulty = 256
+        self._network_confidence = {} #TODO: figure out this part
+        self._percentage_store = 0.05 # 5 percent
+
         self._log_folder = 'training_logs/'
-        self._models_folder = 'trained_models_online/' + self._model_name + "_bootstrap"
+        self._models_folder = 'trained_models_online/' + self._model_name + "_curriculum"
 
         if not os.path.exists(self._models_folder):
             os.makedirs(self._models_folder)
@@ -72,7 +76,7 @@ class Bootstrap:
                 puzzle_name = result[4]
 
                 if has_found_solution:
-                    print(trajectory.get_solution_costs())
+                    #print(trajectory.get_solution_costs())
                     sum_sol_cost += trajectory.get_solution_costs()[-1]
                     memory.add_trajectory(trajectory)
 
@@ -86,10 +90,8 @@ class Bootstrap:
             if memory.number_trajectories() > 0 and update:
                 for _ in range(self._gradient_steps):
                     loss = nn_model.train_with_memory(memory)
-                    """
                     if _ % 10 == 0:
                         print('Iteration: {} Loss: {}'.format(_, loss))
-                    """
                 memory.clear()
                 nn_model.save_weights(join(self._models_folder, 'model_weights'))
 
@@ -103,97 +105,74 @@ class Bootstrap:
         number_solved = 0
         total_expanded = 0
         total_generated = 0
-
+        difficulty = 4
         budget = self._initial_budget
-        memory = Memory()
-
-        current_solved_puzzles = set()
-
         test_solve = 0
-        """
-        way to create problems with smaller instance sizes
-        TODO: fix this!
+        ## TODO: remove this TMP!
+
         """
         states = {}
-
-        for i in range((self._max_states)):
-            states[i] = self._state_gen(50)
-
-        self._states =  states
-        #while len(current_solved_puzzles) < self._number_problems:
-        while test_solve < 1: #replacing for comparison
+        import sys
+        import pickle
+        for i in range(self._states_per_difficulty):
+            states[i] = self._state_gen(100)
+        with open("stp_3_times_3_test", 'wb') as fname:
+            pickle.dump(states, fname)
+        sys.exit(0)
+        """
+        while test_solve < 0.9:
             start = time.time()
-            print("Iteration: {}:".format(iteration))
             number_solved = 0
 
-            batch_problems = {}
-            for name, state in self._states.items():
+            states = {}
+            for i in range(self._states_per_difficulty):
+                states[i] = self._state_gen(difficulty)
 
-#                 if name in current_solved_puzzles:
-#                     continue
-
-                batch_problems[name] = state
-
-                if len(batch_problems) < self._batch_size and self._number_problems - len(current_solved_puzzles) > self._batch_size:
-                    continue
-
-                with ProcessPoolExecutor(max_workers = self._ncpus) as executor:
-                    args = ((state, name, budget, nn_model) for name, state in batch_problems.items())
-                    results = executor.map(planner.search_for_learning, args)
-                for result in results:
-                    has_found_solution = result[0]
-                    trajectory = result[1]
-                    total_expanded += result[2]
-                    total_generated += result[3]
-                    puzzle_name = result[4]
-
-                    if has_found_solution:
-                        memory.add_trajectory(trajectory)
-
-                    if has_found_solution and puzzle_name not in current_solved_puzzles:
-                        number_solved += 1
-                        current_solved_puzzles.add(puzzle_name)
-
-                if memory.number_trajectories() > 0:
-                    for _ in range(self._gradient_steps):
-                        loss = nn_model.train_with_memory(memory)
-                        if _ == 0:
-                            print('Loss: ', loss)
-                    memory.clear()
-                    nn_model.save_weights(join(self._models_folder, 'model_weights'))
-
-                batch_problems.clear()
+            _, number_solved, total_expanded, total_generated = self.solve(states,
+                        planner=planner, nn_model=nn_model, budget=budget, update=True)
 
             end = time.time()
-            with open(join(self._log_folder + 'training_bootstrap_' + self._model_name), 'a') as results_file:
-                results_file.write(("{:d}, {:d}, {:d}, {:d}, {:d}, {:d}, {:f} ".format(iteration,
+            with open(join(self._log_folder + 'training_bootstrap_' + self._model_name + "_curriculum"), 'a') as results_file:
+                results_file.write(("{:d}, {:d}, {:d}, {:d}, {:d}, {:d}, {:d}, {:f} ".format(difficulty,
+                                                                                iteration,
                                                                                  number_solved,
-                                                                                 self._number_problems - len(current_solved_puzzles),
+                                                                                 3,
                                                                                  budget,
                                                                                  total_expanded,
                                                                                  total_generated,
                                                                                  end-start)))
                 results_file.write('\n')
 
-            if number_solved == 0:
-                budget *= 2
-                print('Budget: ', budget)
 
-            self._expansions.append(total_expanded)
+            self._expansions.append(self._expansions[-1] + total_expanded)
             test_sol_qual, test_solved, test_expanded, test_generated = self.solve(self._test_set,\
-                    planner = planner, nn_model = nn_model, budget = 400, update = False) #TODO: remove this hardcode
+                    planner = planner, nn_model = nn_model, budget = budget, update = False)
 
-            test_solve = test_solved/len(self._test_set)
+            test_solve = test_solved / len(self._test_set)
+            print(test_solved, len(self._test_set))
+            print('Train solved: {}\t Test Solved:{}% Difficulty: {}'.format(
+                number_solved / len(states), test_solve, difficulty))
+
             self._time.append(self._time[-1] + (end - start))
+            self._performance.append(test_solve)
             self._solution_quality.append(test_sol_qual / test_solved)
             self._solution_expansions.append(test_expanded / test_solved)
-            self._performance.append(test_solve)
-            print('Training solve: {}%\t Test Solve: {}%'.format(
-                number_solved / len(states), test_solve))
-
+            if self.solvable(nn_model, number_solved, total_expanded, total_generated):
+                difficulty += 1
             iteration += 1
-
         self.show_results()
+
+    def solvable(self, nn, number_solved, total_expanded, total_generated): #maybe just use nn
+
+        if number_solved / self._states_per_difficulty > 0.75:
+            return True
+        else:
+            return False
+        """
+        TODO: write code on content below return statement
+        """
+        output = nn.multiple_predict(x)
+        return True
 
     def show_results(self):
         print(self._expansions)
