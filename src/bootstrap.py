@@ -4,8 +4,8 @@ from os.path import join
 from models.memory import Memory
 from concurrent.futures.process import ProcessPoolExecutor
 import pickle
-
-class Bootstrap:
+from curriculum import Curriculum
+class Bootstrap():
     def __init__(self, states, output, ncpus=1, state_generator = None, initial_budget=2000, gradient_steps=10):
         self._states = states
         self._model_name = output
@@ -193,11 +193,5 @@ class Bootstrap:
 
             iteration += 1
 
-        self.show_results()
+        self.print_results()
 
-    def show_results(self):
-        print(self._expansions)
-        print(self._performance)
-        print(self._solution_quality)
-        print(self._solution_expansions)
-        print(self._time)

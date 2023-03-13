@@ -5,7 +5,7 @@ from models.memory import Memory
 from concurrent.futures.process import ProcessPoolExecutor
 import pickle
 
-class UncertainityCurriculum:
+class UncertainityCurriculum(Curriculum):
     def __init__(self, model_name, sample_problems, ncpus=1, \
             state_generator = None, initial_budget=2000, gradient_steps=10):
         self._model_name = model_name
@@ -174,9 +174,3 @@ class UncertainityCurriculum:
         output = nn.multiple_predict(x)
         return True
 
-    def show_results(self):
-        print(self._expansions)
-        print(self._performance)
-        print(self._solution_quality)
-        print(self._solution_expansions)
-        print(self._time)
