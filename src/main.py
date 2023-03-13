@@ -181,6 +181,9 @@ def main():
     parser.add_argument('-number-test-instances', action='store', dest='number_test_instances', default='0',
                         help='Maximum number of test instances (value of zero will use all instances in the test file).')
 
+    parser.add_argument('-problem-size', action='store', dest='problem_size', type=int, default=None,
+                        help='Size of problem (specific to each domain')
+
     parameters = parser.parse_args()
 
     states = {}
@@ -287,8 +290,10 @@ def main():
         nn_model = manager.KerasModel()
         curriculum = None
 
+        problem_size = domain_sizes[parameters.problem_domain] if \
+                parameters.problem_size is None else parameters.problem_size
         state_gen = get_state_generator(parameters.problem_domain,\
-                        domain_sizes[parameters.problem_domain])
+                        problem_size)
         if parameters.learning_mode == "bootstrap":
             curriculum = Bootstrap(states, parameters.model_name,
                                   ncpus=ncpus,
