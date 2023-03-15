@@ -6,13 +6,14 @@ from concurrent.futures.process import ProcessPoolExecutor
 
 class Curriculum(ABC):
     def __init__(self, model_name, state_generator, test_set_path, ncpus=1, \
-            initial_budget=2000, gradient_steps=10):
+            initial_budget=400, test_budget=400, gradient_steps=10):
 
         self._model_name = model_name
 
         self._ncpus = ncpus
+        self._test_budget = test_budget
         self._initial_budget = initial_budget
-        self._max_budget = initial_budget * 2
+
         self._gradient_steps = gradient_steps
         self._batch_size = 32
 
@@ -35,7 +36,7 @@ class Curriculum(ABC):
 
         if not os.path.exists(self._log_folder):
             os.makedirs(self._log_folder)
-    
+
     def solve(self, states, planner, nn_model, budget, update:bool):
         """
         states: an iterable object containing name, state
@@ -85,7 +86,8 @@ class Curriculum(ABC):
                 for _ in range(self._gradient_steps):
                     loss = nn_model.train_with_memory(memory)
                     if _ % 10 == 0:
-                        print('Iteration: {} Loss: {}'.format(_, loss))
+                        pass
+                        #print('Iteration: {} Loss: {}'.format(_, loss))
                 memory.clear()
                 nn_model.save_weights(os.path.join(self._models_folder, 'model_weights'))
 
@@ -95,7 +97,7 @@ class Curriculum(ABC):
     @abstractmethod
     def learn_online(self, planner, nn_model):
         pass
-    
+
     def generate_test_set(self, path, num_samples):
         states = {}
         import sys

@@ -14,7 +14,7 @@ class UncertainityCurriculum(Curriculum):
         self._network_confidence = {} #TODO: figure out this part
         self._percentage_store = 0.05 # 5 percent
         super().__init__(**kwargs)
-    
+
     def learn_online(self, planner, nn_model):
         iteration = 1
         number_solved = 0
@@ -54,9 +54,8 @@ class UncertainityCurriculum(Curriculum):
                     planner = planner, nn_model = nn_model, budget = budget, update = False)
 
             test_solve = test_solved / len(self._test_set)
-            print(test_solved, len(self._test_set))
             print('Train solved: {}\t Test Solved:{}% Difficulty: {}'.format(
-                number_solved / len(states), test_solve, difficulty))
+                number_solved / len(states) * 100, test_solve * 100, difficulty))
 
             self._time.append(self._time[-1] + (end - start))
             self._performance.append(test_solve)

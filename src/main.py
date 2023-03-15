@@ -187,6 +187,8 @@ def main():
     parser.add_argument('-test-path', action='store', dest='test_path', type=str, default=None,
                         help='Path to the test set (pickle object)')
 
+    parser.add_argument('-test-budget', action='store', dest='test_budget', type=int, default=400,
+                        help='Search budget for test set')
     parameters = parser.parse_args()
 
     states = {}
@@ -304,6 +306,7 @@ def main():
                                   state_generator = state_gen,
                                   test_set_path = parameters.test_path,
                                   initial_budget=int(parameters.search_budget),
+                                  test_budget=parameters.test_budget,
                                   gradient_steps=int(parameters.gradient_steps))
 
         elif parameters.learning_mode == "curr":
@@ -315,6 +318,7 @@ def main():
                                   state_generator = state_gen,
                                   test_set_path = parameters.test_path,
                                   initial_budget=int(parameters.search_budget),
+                                  test_budget=parameters.test_budget,
                                   gradient_steps=int(parameters.gradient_steps))
 
         if parameters.search_algorithm == 'PUCT':

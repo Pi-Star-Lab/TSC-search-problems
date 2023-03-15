@@ -39,7 +39,7 @@ class Bootstrap(Curriculum):
         #while len(current_solved_puzzles) < self._number_problems:
         while test_solve < 0.9: #replacing for comparison
             start = time.time()
-            print("Iteration: {}:".format(iteration))
+            #print("Iteration: {}:".format(iteration))
             number_solved = 0
 
             batch_problems = {}
@@ -74,6 +74,7 @@ class Bootstrap(Curriculum):
                     for _ in range(self._gradient_steps):
                         loss = nn_model.train_with_memory(memory)
                         if _ == 0:
+                            pass
                             print('Loss: ', loss)
                     memory.clear()
                     nn_model.save_weights(join(self._models_folder, 'model_weights'))
@@ -105,7 +106,7 @@ class Bootstrap(Curriculum):
             self._solution_expansions.append(test_expanded / test_solved)
             self._performance.append(test_solve)
             print('Training solve: {}%\t Test Solve: {}%'.format(
-                number_solved / len(states), test_solve))
+                number_solved / len(states) * 100, test_solve * 100))
 
             iteration += 1
 
