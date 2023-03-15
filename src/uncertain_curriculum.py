@@ -59,8 +59,13 @@ class UncertainityCurriculum(Curriculum):
 
             self._time.append(self._time[-1] + (end - start))
             self._performance.append(test_solve)
-            self._solution_quality.append(test_sol_qual / test_solved)
-            self._solution_expansions.append(test_expanded / test_solved)
+            if test_solved == 0:
+                self._solution_quality.append(0)
+                self._solution_expansions.append(0)
+            else:
+                self._solution_quality.append(test_sol_qual / test_solved)
+                self._solution_expansions.append(test_expanded / test_solved)
+
             if self.solvable(nn_model, number_solved, total_expanded, total_generated):
                 difficulty += 1
             iteration += 1
