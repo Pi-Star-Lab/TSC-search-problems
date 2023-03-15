@@ -75,7 +75,7 @@ class Bootstrap(Curriculum):
                         loss = nn_model.train_with_memory(memory)
                         if _ == 0:
                             pass
-                            print('Loss: ', loss)
+                            #print('Loss: ', loss)
                     memory.clear()
                     nn_model.save_weights(join(self._models_folder, 'model_weights'))
 

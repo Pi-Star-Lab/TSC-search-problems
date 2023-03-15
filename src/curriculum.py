@@ -98,15 +98,14 @@ class Curriculum(ABC):
     def learn_online(self, planner, nn_model):
         pass
 
-    def generate_test_set(self, path, num_samples):
+    @staticmethod
+    def generate_test_set(state_gen, path, num_samples, max_steps):
         states = {}
-        import sys
         import pickle
         for i in range(num_samples):
-            states[i] = self._state_gen(100)
+            states[i] = state_gen(max_steps)
         with open(path, 'wb') as fname:
             pickle.dump(states, fname)
-        sys.exit(0)
 
     def print_results(self):
         print(self._expansions)
