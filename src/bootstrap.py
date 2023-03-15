@@ -8,10 +8,10 @@ from curriculum import Curriculum
 
 class Bootstrap(Curriculum):
     def __init__(self, **kwargs):
-        self._max_states = 2048
-        self._number_problems = self._max_states
-        self._max_steps = 1000
         super().__init__(**kwargs)
+        self._max_steps = 1000
+        self._max_states = self._states_per_itr
+        self._number_problems = self._max_states
 
     def learn_online(self, planner, nn_model):
         iteration = 1

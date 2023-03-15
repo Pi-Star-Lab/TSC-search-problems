@@ -5,14 +5,15 @@ from models.memory import Memory
 from concurrent.futures.process import ProcessPoolExecutor
 
 class Curriculum(ABC):
-    def __init__(self, model_name, state_generator, test_set_path, ncpus=1, \
-            initial_budget=400, test_budget=400, gradient_steps=10):
+    def __init__(self, num_states, model_name, state_generator, test_set_path,\
+            ncpus=1, initial_budget=400, test_budget=400, gradient_steps=10):
 
         self._model_name = model_name
 
         self._ncpus = ncpus
         self._test_budget = test_budget
         self._initial_budget = initial_budget
+        self._states_per_itr = num_states
 
         self._gradient_steps = gradient_steps
         self._batch_size = 32
@@ -27,6 +28,7 @@ class Curriculum(ABC):
         self._time = [0]
         self._solution_quality = [0]
         self._solution_expansions = [0]
+
 
         self._log_folder = 'training_logs/'
         self._models_folder = 'trained_models_online/' + self._model_name + "_curriculum"

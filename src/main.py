@@ -189,6 +189,9 @@ def main():
 
     parser.add_argument('-test-budget', action='store', dest='test_budget', type=int, default=400,
                         help='Search budget for test set')
+
+    parser.add_argument('-num-prob', action='store', dest='num_prob', type=int, default=256,
+                        help='Number of problems to be considered each iteration')
     parameters = parser.parse_args()
 
     states = {}
@@ -300,7 +303,8 @@ def main():
         state_gen = get_state_generator(parameters.problem_domain,\
                         problem_size)
         if parameters.learning_mode == "bootstrap":
-            curriculum = Bootstrap(model_name = parameters.model_name,
+            curriculum = Bootstrap(num_states = parameters.num_prob,
+                                  model_name = parameters.model_name,
                                   ncpus=ncpus,
                                   state_generator = state_gen,
                                   test_set_path = parameters.test_path,
@@ -311,7 +315,7 @@ def main():
         elif parameters.learning_mode == "curr":
 
 
-            curriculum = UncertainityCurriculum(
+            curriculum = UncertainityCurriculum(num_states = parameters.num_prob,
                                   model_name = parameters.model_name,
                                   ncpus=ncpus,
                                   state_generator = state_gen,

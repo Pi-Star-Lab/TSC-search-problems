@@ -10,10 +10,10 @@ class UncertainityCurriculum(Curriculum):
     def __init__(self, **kwargs):
 
         ### global variables could be taken as input
-        self._states_per_difficulty = 256
         self._network_confidence = {} #TODO: figure out this part
         self._percentage_store = 0.05 # 5 percent
         super().__init__(**kwargs)
+        self._states_per_difficulty = self._states_per_itr
 
     def learn_online(self, planner, nn_model):
         iteration = 1
