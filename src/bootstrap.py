@@ -7,11 +7,10 @@ import pickle
 from curriculum import Curriculum
 
 class Bootstrap(Curriculum):
-    def __init__(self, states, **kwargs):
-        self._states = states
-        self._number_problems = len(states)
+    def __init__(self, **kwargs):
         self._max_states = 2048
-        self._max_steps = 50
+        self._number_problems = self._max_states
+        self._max_steps = 1000
         super().__init__(**kwargs)
 
     def learn_online(self, planner, nn_model):
@@ -35,15 +34,13 @@ class Bootstrap(Curriculum):
         for i in range((self._max_states)):
             states[i] = self._state_gen(self._max_steps)
 
-        self._states =  states
-        #while len(current_solved_puzzles) < self._number_problems:
         while test_solve < 0.9: #replacing for comparison
             start = time.time()
             #print("Iteration: {}:".format(iteration))
             number_solved = 0
 
             batch_problems = {}
-            for name, state in self._states.items():
+            for name, state in states.items():
 
 #                 if name in current_solved_puzzles:
 #                     continue

@@ -300,8 +300,7 @@ def main():
         state_gen = get_state_generator(parameters.problem_domain,\
                         problem_size)
         if parameters.learning_mode == "bootstrap":
-            curriculum = Bootstrap(states,
-                                  model_name = parameters.model_name,
+            curriculum = Bootstrap(model_name = parameters.model_name,
                                   ncpus=ncpus,
                                   state_generator = state_gen,
                                   test_set_path = parameters.test_path,
