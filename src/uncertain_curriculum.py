@@ -50,21 +50,23 @@ class UncertainityCurriculum(Curriculum):
 
 
             self._expansions.append(self._expansions[-1] + total_expanded)
-            test_sol_qual, test_solved, test_expanded, test_generated = self.solve(self._test_set,\
-                    planner = planner, nn_model = nn_model, budget = budget, update = False)
 
-            test_solve = test_solved / len(self._test_set)
-            print('Train solved: {}\t Test Solved:{}% Difficulty: {}'.format(
-                number_solved / len(states) * 100, test_solve * 100, difficulty))
+            if iteration % 5 == 0:
+                test_sol_qual, test_solved, test_expanded, test_generated = self.solve(self._test_set,\
+                        planner = planner, nn_model = nn_model, budget = budget, update = False)
 
-            self._time.append(self._time[-1] + (end - start))
-            self._performance.append(test_solve)
-            if test_solved == 0:
-                self._solution_quality.append(0)
-                self._solution_expansions.append(0)
-            else:
-                self._solution_quality.append(test_sol_qual / test_solved)
-                self._solution_expansions.append(test_expanded / test_solved)
+                test_solve = test_solved / len(self._test_set)
+                print('Train solved: {}\t Test Solved:{}% Difficulty: {}'.format(
+                    number_solved / len(states) * 100, test_solve * 100, difficulty))
+
+                self._time.append(self._time[-1] + (end - start))
+                self._performance.append(test_solve)
+                if test_solved == 0:
+                    self._solution_quality.append(0)
+                    self._solution_expansions.append(0)
+                else:
+                    self._solution_quality.append(test_sol_qual / test_solved)
+                    self._solution_expansions.append(test_expanded / test_solved)
 
             if self.solvable(nn_model, number_solved, total_expanded, total_generated):
                 difficulty += 1
