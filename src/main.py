@@ -184,6 +184,9 @@ def main():
     parser.add_argument('-problem-size', action='store', dest='problem_size', type=int, default=None,
                         help='Size of problem (specific to each domain')
 
+    parser.add_argument('-test-path', action='store', dest='test_path', type=str, default=None,
+                        help='Path to the test set (pickle object)')
+
     parameters = parser.parse_args()
 
     states = {}
@@ -295,18 +298,22 @@ def main():
         state_gen = get_state_generator(parameters.problem_domain,\
                         problem_size)
         if parameters.learning_mode == "bootstrap":
-            curriculum = Bootstrap(states, parameters.model_name,
+            curriculum = Bootstrap(states,
+                                  model_name = parameters.model_name,
                                   ncpus=ncpus,
                                   state_generator = state_gen,
+                                  test_set_path = parameters.test_path,
                                   initial_budget=int(parameters.search_budget),
                                   gradient_steps=int(parameters.gradient_steps))
 
         elif parameters.learning_mode == "curr":
 
 
-            curriculum = UncertainityCurriculum(parameters.model_name, states,
+            curriculum = UncertainityCurriculum(
+                                  model_name = parameters.model_name,
                                   ncpus=ncpus,
                                   state_generator = state_gen,
+                                  test_set_path = parameters.test_path,
                                   initial_budget=int(parameters.search_budget),
                                   gradient_steps=int(parameters.gradient_steps))
 
@@ -321,7 +328,7 @@ def main():
 
             if parameters.learning_mode:
                 #bootstrap_learning_bfs(states, bfs_planner, nn_model, parameters.model_name, int(parameters.search_budget), ncpus)
-                curriculum.solve_uniform_online(bfs_planner, nn_model)
+                curriculum.learn_online(bfs_planner, nn_model)
             elif parameters.blind_search:
                 search(states, bfs_planner, nn_model, ncpus, int(parameters.time_limit), int(parameters.search_budget))
             elif parameters.fixed_time:
@@ -345,7 +352,7 @@ def main():
 
             if parameters.learning_mode:
 #                 bootstrap_learning_bfs(states, bfs_planner, nn_model, parameters.model_name, int(parameters.search_budget), ncpus)
-                curriculum.solve_uniform_online(bfs_planner, nn_model)
+                curriculum.learn_online(bfs_planner, nn_model)
             elif parameters.blind_search:
                 search(states, bfs_planner, nn_model, ncpus, int(parameters.time_limit), int(parameters.search_budget))
             elif parameters.fixed_time:
@@ -366,7 +373,7 @@ def main():
 
             if parameters.learning_mode:
 #                 bootstrap_learning_bfs(states, bfs_planner, nn_model, parameters.model_name, int(parameters.search_budget), ncpus)
-                curriculum.solve_uniform_online(bfs_planner, nn_model)
+                curriculum.learn_online(bfs_planner, nn_model)
             elif parameters.blind_search:
                 search(states, bfs_planner, nn_model, ncpus, int(parameters.time_limit), int(parameters.search_budget))
             else:
@@ -379,7 +386,7 @@ def main():
             if parameters.learning_mode and parameters.use_learned_heuristic:
                 nn_model.initialize(parameters.loss_function, parameters.search_algorithm)
 #                 bootstrap_learning_bfs(states, bfs_planner, nn_model, parameters.model_name, int(parameters.search_budget), ncpus)
-                curriculum.solve_uniform_online(bfs_planner, nn_model)
+                curriculum.learn_online(bfs_planner, nn_model)
             elif parameters.fixed_time and parameters.use_learned_heuristic:
                 nn_model.initialize(parameters.loss_function, parameters.search_algorithm)
                 nn_model.load_weights(join('trained_models_online', parameters.model_name, 'model_weights'))
@@ -397,7 +404,7 @@ def main():
             if parameters.learning_mode:
                 nn_model.initialize(parameters.loss_function, parameters.search_algorithm)
 #                 bootstrap_learning_bfs(states, bfs_planner, nn_model, parameters.model_name, int(parameters.search_budget), ncpus)
-                curriculum.solve_uniform_online(bfs_planner, nn_model)
+                curriculum.learn_online(bfs_planner, nn_model)
             elif parameters.fixed_time and parameters.use_learned_heuristic:
                 nn_model.initialize(parameters.loss_function, parameters.search_algorithm)
                 nn_model.load_weights(join('trained_models_online', parameters.model_name, 'model_weights'))
