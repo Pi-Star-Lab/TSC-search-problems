@@ -53,7 +53,7 @@ class UncertainityCurriculum(Curriculum):
 
             if iteration % 5 == 0:
                 test_sol_qual, test_solved, test_expanded, test_generated = self.solve(self._test_set,\
-                        planner = planner, nn_model = nn_model, budget = budget, update = False)
+                        planner = planner, nn_model = nn_model, budget = self._test_budget, update = False)
 
                 test_solve = test_solved / len(self._test_set)
                 print('Train solved: {}\t Test Solved:{}% Difficulty: {}'.format(
