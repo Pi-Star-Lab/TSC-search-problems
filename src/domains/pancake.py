@@ -5,7 +5,6 @@ import copy
 def flip_tail(lst, index):
     return lst[:index] + lst[index:][::-1]
 
-
 class Pancake(Environment):
 
     def __init__(self, stack):
@@ -70,6 +69,9 @@ class Pancake(Environment):
     def get_name():
         return "pancake"
 
+    def successors_parent_pruning(self, op):
+        return self.successors()
+
     def apply_action(self, action):
         self.stack = flip_tail(self.stack,action)
 
@@ -78,3 +80,17 @@ class Pancake(Environment):
 
     def copy(self):
         return copy.deepcopy(self)
+
+    @staticmethod
+    def generate_state(size, steps):
+        stack = list(range(size))
+
+        goal_state = Pancake(stack)
+        assert(goal_state.is_solution())
+
+        state = goal_state
+        for i in range(steps):
+            actions = state.successors()
+            state.apply_action(np.random.choice(actions))
+
+        return state
