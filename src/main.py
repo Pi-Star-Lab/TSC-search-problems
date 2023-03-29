@@ -13,8 +13,8 @@ from domains.sliding_tile_puzzle import SlidingTilePuzzle
 from domains.sokoban import Sokoban
 from domains.pancake import Pancake
 from search.puct import PUCT
-from bootstrap import Bootstrap
-from uncertain_curriculum import UncertainityCurriculum
+from curriculum.bootstrap import Bootstrap
+from curriculum.rw_curriculum import RWCurriculum
 
 def get_state_generator(domain, size):
 
@@ -321,7 +321,7 @@ def main():
         elif parameters.learning_mode == "curr":
 
 
-            curriculum = UncertainityCurriculum(num_states = parameters.num_prob,
+            curriculum = RWCurriculum(num_states = parameters.num_prob,
                                   model_name = parameters.model_name,
                                   ncpus=ncpus,
                                   state_generator = state_gen,

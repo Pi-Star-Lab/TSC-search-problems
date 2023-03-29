@@ -1,0 +1,21 @@
+from numpy as np
+
+class NonStatBandit:
+    def __init__(self, size:int, lr = 1e-2, V = None):
+
+        self.size = size
+        self.lr = lr
+        if V is None:
+            self.V = np.zeros(size)
+        else:
+            self.V = np.ndarray(V)
+
+    def get_action(self):
+        return np.random.choice(range(self.size), size = 1, p = self.V)
+
+    def get_actions(self, num:int):
+        #Thompson Sampling
+        return np.random.choice(range(self.size), size = num, p = self.V)
+
+    def update(self, action:int, reward:float):
+        self.V[action] = (1 - self.lr) * self.V[action] + self.lr * reward

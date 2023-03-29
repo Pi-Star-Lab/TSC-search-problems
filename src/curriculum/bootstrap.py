@@ -4,7 +4,7 @@ from os.path import join
 from models.memory import Memory
 from concurrent.futures.process import ProcessPoolExecutor
 import pickle
-from curriculum import Curriculum
+from curriculum.curriculum import Curriculum
 
 class Bootstrap(Curriculum):
     def __init__(self, **kwargs):
@@ -95,7 +95,7 @@ class Bootstrap(Curriculum):
 
             self._expansions.append(total_expanded)
             test_sol_qual, test_solved, test_expanded, test_generated = self.solve(self._test_set,\
-                    planner = planner, nn_model = nn_model, budget = self._test_budget, update = False) #TODO: remove this hardcode
+                    planner = planner, nn_model = nn_model, budget = self._test_budget, memory = memory, update = False) #TODO: remove this hardcode
 
             test_solve = test_solved/len(self._test_set)
             self._time.append(self._time[-1] + (end - start))

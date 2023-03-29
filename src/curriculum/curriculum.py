@@ -39,14 +39,13 @@ class Curriculum(ABC):
         if not os.path.exists(self._log_folder):
             os.makedirs(self._log_folder)
 
-    def solve(self, states, planner, nn_model, budget, update:bool):
+    def solve(self, states, planner, nn_model, budget, memory, update:bool):
         """
         states: an iterable object containing name, state
         returns:
         solved, expanded, generate
         """
         batch_problems = {}
-        memory = Memory()
         current_solved_puzzles = set()
         number_solved = 0
         total_expanded = 0
