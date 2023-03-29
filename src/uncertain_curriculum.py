@@ -49,7 +49,6 @@ class UncertainityCurriculum(Curriculum):
                 results_file.write('\n')
 
 
-            self._expansions.append(self._expansions[-1] + total_expanded)
 
             if iteration % 5 == 0:
                 test_sol_qual, test_solved, test_expanded, test_generated = self.solve(self._test_set,\
@@ -61,6 +60,7 @@ class UncertainityCurriculum(Curriculum):
 
                 self._time.append(self._time[-1] + (end - start))
                 self._performance.append(test_solve)
+                self._expansions.append(self._expansions[-1] + total_expanded)
                 if test_solved == 0:
                     self._solution_quality.append(0)
                     self._solution_expansions.append(0)
