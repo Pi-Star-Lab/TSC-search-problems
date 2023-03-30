@@ -11,6 +11,7 @@ class NonStatBandit:
             self.V = np.ndarray(V)
 
     def get_action(self):
+        #Thompson Sampling
         return np.random.choice(range(self.size), size = 1, p = self.V)
 
     def get_actions(self, num:int):
@@ -19,3 +20,7 @@ class NonStatBandit:
 
     def update(self, action:int, reward:float):
         self.V[action] = (1 - self.lr) * self.V[action] + self.lr * reward
+
+    def batch_update(self, actions:np.ndarray, rewards:np.ndarray):
+        for i in range(len(actions)):
+            self.update(actions[i], rewards[i])
