@@ -4,12 +4,14 @@ from os.path import join
 from models.memory import Memory
 from concurrent.futures.process import ProcessPoolExecutor
 import pickle
+import random
 from curriculum.curriculum import Curriculum
 
 class Bootstrap(Curriculum):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._max_steps = 1000
+        self._min_steps = 10
         self._max_states = self._states_per_itr
         self._number_problems = self._max_states
 
@@ -32,7 +34,9 @@ class Bootstrap(Curriculum):
         states = {}
 
         for i in range((self._max_states)):
-            states[i] = self._state_gen(self._max_steps)
+            steps = self._min_steps + random.random() * (self._max_steps - self._min_steps)
+            steps = int(steps)
+            states[i] = self._state_gen(steps)
 
         while test_solve < 0.9: #replacing for comparison
             start = time.time()
