@@ -16,17 +16,19 @@ from search.puct import PUCT
 from bootstrap import Bootstrap
 from uncertain_curriculum import UncertainityCurriculum
 
-def get_state_generator(domain, size):
+def get_state_generator(domain, domain_args):
+    """
+    Domain args is size of STP Pancake, and path to states for sokoban
+    """
 
-    base_fn = None
     if domain == "SlidingTile":
-        return lambda distance: SlidingTilePuzzle.generate_state(size, distance)
+        return lambda distance: SlidingTilePuzzle.generate_state(domain_args, distance)
     if domain == "Pancake":
-        return lambda distance: Pancake.generate_state(size, distance)
+        return lambda distance: Pancake.generate_state(domain_args, distance)
     elif domain == "Witness":
         return lambda distance: WitnessState.generate_state(size, distance)
     elif domain == "Sokoban":
-        return lambda distance: Sokoban.generate_state(size, distance)
+        return lambda distance: Sokoban.generate_state(domain_args, distance)
     else:
         raise NotImplementedError
 
@@ -306,8 +308,14 @@ def main():
 
         problem_size = domain_sizes[parameters.problem_domain] if \
                 parameters.problem_size is None else parameters.problem_size
-        state_gen = get_state_generator(parameters.problem_domain,\
-                        problem_size)
+
+        if parameters.problem_domain == 'Sokoban':
+            state_gen = get_state_generator(parameters.problem_domain,\
+                            states)
+        else:
+            state_gen = get_state_generator(parameters.problem_domain,\
+                            problem_size)
+
         if parameters.learning_mode == "bootstrap":
             curriculum = Bootstrap(num_states = parameters.num_prob,
                                   model_name = parameters.model_name,
