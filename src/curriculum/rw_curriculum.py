@@ -32,7 +32,7 @@ class RWCurriculum(Curriculum):
             for i in range(self._states_per_difficulty):
                 states[i] = self._state_gen(difficulty)
 
-            _, number_solved, total_expanded, total_generated = self.solve(states,
+            _, number_solved, total_expanded, total_generated, _, _ = self.solve(states,
                         planner=planner, nn_model=nn_model, budget=budget, memory = memory, update=True)
 
             end = time.time()
@@ -50,7 +50,7 @@ class RWCurriculum(Curriculum):
 
 
             if iteration % 5 == 0:
-                test_sol_qual, test_solved, test_expanded, test_generated = self.solve(self._test_set,\
+                test_sol_qual, test_solved, test_expanded, test_generated, _, _ = self.solve(self._test_set,\
                         planner = planner, nn_model = nn_model, budget = self._test_budget, memory = memory, update = False)
 
                 test_solve = test_solved / len(self._test_set)

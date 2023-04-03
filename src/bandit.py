@@ -1,4 +1,5 @@
-from numpy as np
+import numpy as np
+from scipy.special import softmax
 
 class NonStatBandit:
     def __init__(self, size:int, lr = 1e-2, V = None):
@@ -8,7 +9,7 @@ class NonStatBandit:
         if V is None:
             self.V = np.zeros(size)
         else:
-            self.V = np.ndarray(V)
+            self.V = V
 
     def get_action(self):
         #Thompson Sampling
@@ -16,7 +17,9 @@ class NonStatBandit:
 
     def get_actions(self, num:int):
         #Thompson Sampling
-        return np.random.choice(range(self.size), size = num, p = self.V)
+        p = softmax(self.V / 100)
+        print(p)
+        return np.random.choice(range(self.size), size = num, p = p)
 
     def update(self, action:int, reward:float):
         self.V[action] = (1 - self.lr) * self.V[action] + self.lr * reward

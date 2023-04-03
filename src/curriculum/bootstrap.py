@@ -98,7 +98,7 @@ class Bootstrap(Curriculum):
                 print('Budget: ', budget)
 
             self._expansions.append(total_expanded)
-            test_sol_qual, test_solved, test_expanded, test_generated = self.solve(self._test_set,\
+            test_sol_qual, test_solved, test_expanded, test_generated, _, _ = self.solve(self._test_set,\
                     planner = planner, nn_model = nn_model, budget = self._test_budget, memory = memory, update = False) #TODO: remove this hardcode
 
             test_solve = test_solved/len(self._test_set)
