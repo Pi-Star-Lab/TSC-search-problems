@@ -6,6 +6,7 @@ from concurrent.futures.process import ProcessPoolExecutor
 import pickle
 from curriculum.rw_curriculum import RWCurriculum
 from bandit import NonStatBandit
+from cmaes_teacher import CMAESTeacher
 import numpy as np
 
 class TSCurriculum(RWCurriculum):
@@ -27,12 +28,9 @@ class TSCurriculum(RWCurriculum):
         total_generated = 0
         budget = self._initial_budget
         test_solve = 0
-        max_length = 20
         memory = Memory()
 
-        v = self.init_v(max_length, mean =  6, std = 5)
-        print(v)
-        teacher = NonStatBandit(size = max_length, lr=1e-1, V = v)
+        teacher = CMAESTeacher(batch_size=self._states_per_difficulty, mean=4, std=4)
         ## TODO: remove this TMP!
 
         while test_solve < 0.9:
@@ -45,7 +43,7 @@ class TSCurriculum(RWCurriculum):
                 states[i] = self._state_gen(difficulty)
 
             _, number_solved, total_expanded, total_generated, sol_costs, _ = self.solve(states,
-                        planner=planner, nn_model=nn_model, budget=budget, memory = memory, update=True)
+                        planner=planner, nn_model=nn_model, budget=budget, memory=memory, update=True)
 
             end = time.time()
             with open(join(self._log_folder + 'training_bootstrap_' + self._model_name + "_curriculum"), 'a') as results_file:
@@ -61,8 +59,8 @@ class TSCurriculum(RWCurriculum):
 
 
 
-            test_sol_qual, test_solved, test_expanded, test_generated, _, _ = self.solve(self._test_set,\
-                    planner = planner, nn_model = nn_model, budget = self._test_budget, memory = memory, update = False)
+            test_sol_qual, test_solved, test_expanded, test_generated, _, _ = self.solve(self._test_set,
+                    planner=planner, nn_model=nn_model, budget=self._test_budget, memory=memory, update=False)
 
             test_solve = test_solved / len(self._test_set)
             mean_difficulty = sum(difficulties) / len(difficulties)
@@ -80,21 +78,22 @@ class TSCurriculum(RWCurriculum):
                 self._solution_expansions.append(test_expanded / test_solved)
 
             #TODO: get rewards
-            rewards = self.get_rewards(sol_costs, difficulties)
+            rewards = self.get_rewards(sol_costs, difficulties) #TODO: make it expanded
             teacher.batch_update(difficulties, rewards)
             print("Difficuties")
             print(difficulties)
             print(rewards)
-            print(teacher.V)
             iteration += 1
         self.print_results()
 
-    def get_rewards(self, costs, difficulties):
+    def get_rewards(self, expanded, difficulties):
         rewards = []
-        for i in range(len(costs)):
-            if costs[i] == float('inf'):
-                rewards.append(-100)
+        print("expanded: ", expanded, "difficulties: ", len(difficulties))
+        for i in range(len(expanded)):
+            if expanded[i] == float('inf'):
+                rewards.append(-100000)
             else:
-                rewards.append((-costs[i]) * difficulties[i])
+                rewards.append(-expanded[i] / (difficulties[i] * 1.1))
+        print("expanded: ", len(expanded), "difficulties: ", len(difficulties), "rewards: ", len(rewards))
         return rewards
 

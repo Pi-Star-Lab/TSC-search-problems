@@ -10,8 +10,8 @@ from curriculum.curriculum import Curriculum
 class Bootstrap(Curriculum):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._max_steps = 1000
-        self._min_steps = 10
+        self._max_steps = 200
+        self._min_steps = 1
         self._max_states = self._states_per_itr
         self._number_problems = self._max_states
 
