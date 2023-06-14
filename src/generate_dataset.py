@@ -1,5 +1,5 @@
 import argparse
-from curriculum import Curriculum
+from curriculum.curriculum import Curriculum
 from main import get_state_generator
 def main():
     """
