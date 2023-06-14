@@ -42,7 +42,7 @@ class TSCurriculum(RWCurriculum):
             for i, difficulty in enumerate(difficulties):
                 states[i] = self._state_gen(difficulty)
 
-            _, number_solved, total_expanded, total_generated, sol_costs, _ = self.solve(states,
+            _, number_solved, total_expanded, total_generated, sol_costs, sol_expansions = self.solve(states,
                         planner=planner, nn_model=nn_model, budget=budget, memory=memory, update=True)
 
             end = time.time()
@@ -78,7 +78,7 @@ class TSCurriculum(RWCurriculum):
                 self._solution_expansions.append(test_expanded / test_solved)
 
             #TODO: get rewards
-            rewards = self.get_rewards(sol_costs, difficulties) #TODO: make it expanded
+            rewards = self.get_rewards(sol_expansions, difficulties) #TODO: make it expanded
             teacher.batch_update(difficulties, rewards)
             print("Difficuties")
             print(difficulties)
@@ -91,9 +91,9 @@ class TSCurriculum(RWCurriculum):
         print("expanded: ", expanded, "difficulties: ", len(difficulties))
         for i in range(len(expanded)):
             if expanded[i] == float('inf'):
-                rewards.append(-100000)
+                rewards.append(-1)
             else:
-                rewards.append(-expanded[i] / (difficulties[i] * 1.1))
+                rewards.append(expanded[i])
         print("expanded: ", len(expanded), "difficulties: ", len(difficulties), "rewards: ", len(rewards))
         return rewards
 
