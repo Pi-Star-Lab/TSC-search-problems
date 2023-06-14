@@ -7,8 +7,8 @@ class UnivarGaussianTeacher:
         self.opt = UnivarEvolutionaryStrategy(mean=mean, sigma = std, popsize = batch_size)
 
     def get_action(self):
-        self.opt.ask()
-        return  
+        action = round(self.opt.ask())
+        return action
 
     def get_actions(self, num:int):
         assert(num == self.batch_size)
@@ -22,4 +22,5 @@ class UnivarGaussianTeacher:
         for i in range(len(actions)):
             sols.append((actions[i], -rewards[i])) # cma es minimizes
         print(len(sols))
-        self.cma.tell(sols)
+        self.opt.tell(sols)
+

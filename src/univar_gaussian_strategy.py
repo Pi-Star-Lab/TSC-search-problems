@@ -3,27 +3,27 @@ import sys
 
 class UnivarEvolutionaryStrategy():
 
-    def __init__(self, mean, std, popsize, elite = 0.5, min_var = 5):
-    
+    def __init__(self, mean, sigma, popsize, elite = 0.5, min_var = 5):
+
         self.mean = mean
-        self.std = std 
+        self.std = sigma
         self.popsize = popsize
         self.elite = elite
         self.min_var = min_var
 
     def ask(self):
-        
-        return np.random.normal(self.mean, self.std, 1)
+
+        return np.random.normal(self.mean, self.std, 1)[0]
 
     def tell(self, solutions):
-        
+
         assert(len(solutions) == self.popsize)
         xs, ys = [], []
         for sol in solutions:
             xs.append(sol[0])
             ys.append(sol[1])
         ys, xs = (list(t) for t in zip(*sorted(zip(ys, xs))))
-        
+
         topk = int(self.popsize * self.elite)
         topx = xs[:topk]
         self.mean = np.mean(topx)
@@ -48,15 +48,15 @@ def non_stat_fn(x):
     return fval
 
 if __name__ == "__main__":
-   
+
     batch_size = 32
     opt_alg = UnivarEvolutionaryStrategy(-10, 20, 32, elite = 0.1)
-    fn = convex 
-    fn = non_stat_fn 
+    fn = convex
+    fn = non_stat_fn
     while not opt_alg.coverged():
         xs = [opt_alg.ask() for x in range(batch_size)]
         ys = [fn(x) for x in xs]
-        solutions = [] 
+        solutions = []
         for i in range(len(xs)):
             solutions.append((xs[i], ys[i]))
         opt_alg.tell(solutions)
