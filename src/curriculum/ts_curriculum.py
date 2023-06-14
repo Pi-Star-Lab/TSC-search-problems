@@ -8,9 +8,11 @@ from curriculum.rw_curriculum import RWCurriculum
 from bandit import NonStatBandit
 from cmaes_teacher import CMAESTeacher
 import numpy as np
+from univar_gaussian_teacher import UnivarGaussianTeacher
 
 class TSCurriculum(RWCurriculum):
-
+    
+    # TODO: remove init_v from this class, and perhaps put this in bandit class
     def init_v(self, length:int, mean:int, std:float):
         v = np.zeros(length)
         samples = np.random.normal(loc=mean, scale=std, size = 10000)
@@ -30,7 +32,7 @@ class TSCurriculum(RWCurriculum):
         test_solve = 0
         memory = Memory()
 
-        teacher = CMAESTeacher(batch_size=self._states_per_difficulty, mean=4, std=4)
+        teacher = UnivarGaussianTeacher(batch_size=self._states_per_difficulty, mean=4, std=4)
         ## TODO: remove this TMP!
 
         while test_solve < 1:
