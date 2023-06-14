@@ -4,12 +4,14 @@ from os.path import join
 from models.memory import Memory
 from concurrent.futures.process import ProcessPoolExecutor
 import pickle
-from curriculum import Curriculum
+import random
+from curriculum.curriculum import Curriculum
 
 class Bootstrap(Curriculum):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._max_steps = 1000
+        self._max_steps = 200
+        self._min_steps = 1
         self._max_states = self._states_per_itr
         self._number_problems = self._max_states
 
@@ -32,7 +34,9 @@ class Bootstrap(Curriculum):
         states = {}
 
         for i in range((self._max_states)):
-            states[i] = self._state_gen(self._max_steps)
+            steps = self._min_steps + random.random() * (self._max_steps - self._min_steps)
+            steps = int(steps)
+            states[i] = self._state_gen(steps)
 
         while test_solve < 0.9: #replacing for comparison
             start = time.time()
@@ -94,8 +98,8 @@ class Bootstrap(Curriculum):
                 print('Budget: ', budget)
 
             self._expansions.append(total_expanded)
-            test_sol_qual, test_solved, test_expanded, test_generated = self.solve(self._test_set,\
-                    planner = planner, nn_model = nn_model, budget = self._test_budget, update = False) #TODO: remove this hardcode
+            test_sol_qual, test_solved, test_expanded, test_generated, _, _ = self.solve(self._test_set,\
+                    planner = planner, nn_model = nn_model, budget = self._test_budget, memory = memory, update = False) #TODO: remove this hardcode
 
             test_solve = test_solved/len(self._test_set)
             self._time.append(self._time[-1] + (end - start))

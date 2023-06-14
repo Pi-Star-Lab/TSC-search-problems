@@ -4,14 +4,12 @@ from os.path import join
 from models.memory import Memory
 from concurrent.futures.process import ProcessPoolExecutor
 import pickle
-from curriculum import Curriculum
+from curriculum.curriculum import Curriculum
 
-class UncertainityCurriculum(Curriculum):
+class RWCurriculum(Curriculum):
     def __init__(self, **kwargs):
 
         ### global variables could be taken as input
-        self._network_confidence = {} #TODO: figure out this part
-        self._percentage_store = 0.05 # 5 percent
         super().__init__(**kwargs)
         self._states_per_difficulty = self._states_per_itr
 
@@ -23,6 +21,7 @@ class UncertainityCurriculum(Curriculum):
         difficulty = 4
         budget = self._initial_budget
         test_solve = 0
+        memory = Memory()
         ## TODO: remove this TMP!
 
         while test_solve < 0.9:
@@ -33,8 +32,8 @@ class UncertainityCurriculum(Curriculum):
             for i in range(self._states_per_difficulty):
                 states[i] = self._state_gen(difficulty)
 
-            _, number_solved, total_expanded, total_generated = self.solve(states,
-                        planner=planner, nn_model=nn_model, budget=budget, update=True)
+            _, number_solved, total_expanded, total_generated, _, _ = self.solve(states,
+                        planner=planner, nn_model=nn_model, budget=budget, memory = memory, update=True)
 
             end = time.time()
             with open(join(self._log_folder + 'training_bootstrap_' + self._model_name + "_curriculum"), 'a') as results_file:
@@ -51,8 +50,8 @@ class UncertainityCurriculum(Curriculum):
 
 
             if iteration % 5 == 0:
-                test_sol_qual, test_solved, test_expanded, test_generated = self.solve(self._test_set,\
-                        planner = planner, nn_model = nn_model, budget = self._test_budget, update = False)
+                test_sol_qual, test_solved, test_expanded, test_generated, _, _ = self.solve(self._test_set,\
+                        planner = planner, nn_model = nn_model, budget = self._test_budget, memory = memory, update = False)
 
                 test_solve = test_solved / len(self._test_set)
                 print('Train solved: {}\t Test Solved:{}% Difficulty: {}'.format(

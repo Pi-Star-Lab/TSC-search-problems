@@ -13,8 +13,9 @@ from domains.sliding_tile_puzzle import SlidingTilePuzzle
 from domains.sokoban import Sokoban
 from domains.pancake import Pancake
 from search.puct import PUCT
-from bootstrap import Bootstrap
-from uncertain_curriculum import UncertainityCurriculum
+from curriculum.bootstrap import Bootstrap
+from curriculum.rw_curriculum import RWCurriculum
+from curriculum.ts_curriculum import TSCurriculum
 
 def get_state_generator(domain, size):
 
@@ -175,7 +176,7 @@ def main():
 
     parser.add_argument('--learn', action='store', default='',
                         dest='learning_mode',
-                        help='leave blank for no learning, bootstrap for boostrapping and curr for curriculum')
+                        help='leave blank for no learning, bootstrap for boostrapping, curr for RW curriculum, tscl for teacher-student curriculum')
 
     parser.add_argument('--fixed-time', action='store_true', default=False,
                         dest='fixed_time',
@@ -185,7 +186,7 @@ def main():
                         help='Maximum number of test instances (value of zero will use all instances in the test file).')
 
     parser.add_argument('-problem-size', action='store', dest='problem_size', type=int, default=None,
-                        help='Size of problem (specific to each domain')
+                        help='Size of problem (specific to each domain)')
 
     parser.add_argument('-test-path', action='store', dest='test_path', type=str, default=None,
                         help='Path to the test set (pickle object)')
@@ -321,7 +322,7 @@ def main():
         elif parameters.learning_mode == "curr":
 
 
-            curriculum = UncertainityCurriculum(num_states = parameters.num_prob,
+            curriculum = RWCurriculum(num_states = parameters.num_prob,
                                   model_name = parameters.model_name,
                                   ncpus=ncpus,
                                   state_generator = state_gen,
@@ -329,6 +330,17 @@ def main():
                                   initial_budget=int(parameters.search_budget),
                                   test_budget=parameters.test_budget,
                                   gradient_steps=int(parameters.gradient_steps))
+
+        elif parameters.learning_mode == "tscl":
+            curriculum = TSCurriculum(num_states = parameters.num_prob,
+                                  model_name = parameters.model_name,
+                                  ncpus=ncpus,
+                                  state_generator = state_gen,
+                                  test_set_path = parameters.test_path,
+                                  initial_budget=int(parameters.search_budget),
+                                  test_budget=parameters.test_budget,
+                                  gradient_steps=int(parameters.gradient_steps))
+
 
         if parameters.search_algorithm == 'PUCT':
 

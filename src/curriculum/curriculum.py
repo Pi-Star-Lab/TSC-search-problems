@@ -39,19 +39,21 @@ class Curriculum(ABC):
         if not os.path.exists(self._log_folder):
             os.makedirs(self._log_folder)
 
-    def solve(self, states, planner, nn_model, budget, update:bool):
+    def solve(self, states, planner, nn_model, budget, memory, update:bool):
         """
         states: an iterable object containing name, state
         returns:
-        solved, expanded, generate
+        number of solved, expanded, generate
+        solution costs, expansions per problem
         """
         batch_problems = {}
-        memory = Memory()
         current_solved_puzzles = set()
         number_solved = 0
         total_expanded = 0
         total_generated = 0
         sum_sol_cost = 0
+        sol_costs = []
+        sol_expansions = []
 
         for name, state in states.items():
 
@@ -76,6 +78,11 @@ class Curriculum(ABC):
                     #print(trajectory.get_solution_costs())
                     sum_sol_cost += trajectory.get_solution_costs()[-1]
                     memory.add_trajectory(trajectory)
+                    sol_costs.append(trajectory.get_solution_costs()[-1])
+                    sol_expansions.append(result[2])
+                else:
+                    sol_costs.append(float("inf"))
+                    sol_expansions.append(float("inf"))
 
                 #perhaps do not count current solved puzzles
                 if has_found_solution and puzzle_name not in current_solved_puzzles:
@@ -94,7 +101,7 @@ class Curriculum(ABC):
                 nn_model.save_weights(os.path.join(self._models_folder, 'model_weights'))
 
             batch_problems.clear()
-        return (sum_sol_cost, number_solved, total_expanded, total_generated)
+        return (sum_sol_cost, number_solved, total_expanded, total_generated, sol_costs, sol_expansions)
 
     @abstractmethod
     def learn_online(self, planner, nn_model):
