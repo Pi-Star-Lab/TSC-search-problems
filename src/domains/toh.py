@@ -12,8 +12,8 @@ class TOH(Environment):
         integers seperated by commas. Denote the disk location (smallest to largest) (which peg? from 0-3?)
         """
         if isinstance(locations, str):
-            loc = locations.split(' ')
-        self.loc = loc 
+            locations = locations.split(' ')
+        self.loc = locations
 
     # Return "[0,1,2]" from locations '0', '1', '2'
     def __str__(self):
@@ -23,21 +23,25 @@ class TOH(Environment):
         ans = ans[:-1] + "]"
         return ans
 
-    def successors(self):
-        successors = []
+    def get_top_disks(self):
         top_disks = [float("inf") for i in range(4)]
         for i, l in enumerate(self.loc):
-            top_disks[l] = min(top_disks[l], i) 
+            top_disks[l] = min(top_disks[l], i)
+        return top_disks
+    
+    def successors(self):
+        successors = []
+        top_disks = self.get_top_disks()
         for i in range(4):
             for j in range(i+1, 4):
                 if i == j:
                     continue
                 if top_disks[i] > top_disks[j]:
                     #move j to i
-                    succesors.append(j * 100 + i)
-                else:
+                    successors.append(j * 100 + i)
+                elif top_disks[i] < top_disks[j]:
                     #move i to j
-                    succesors.append(i * 100 + j)
+                    successors.append(i * 100 + j)
     
         return successors
 
@@ -47,7 +51,7 @@ class TOH(Environment):
     def __hash__(self):
         return hash(str(self.loc))
 
-    def get_image_representation(self): # 1D Tensor! Rather Tensor TODO
+    def get_image_representation(self):  # 1D Tensor! Rather Tensor TODO
         """
         Return the one-hot encoding of the pancake problem
         """
@@ -67,7 +71,7 @@ class TOH(Environment):
         return self.loc
 
     def is_solution(self):
-        return self == TOH.get_goal_dummy(len(self.TOH))
+        return self == TOH.get_goal_dummy(len(self.loc))
 
     """
     @staticmethod
@@ -90,7 +94,8 @@ class TOH(Environment):
 
     def apply_action(self, action):
         source, dest = action // 100, action % 100
-        self.loc[source] = self.loc[dest]
+        top_disks = self.get_top_disks()
+        self.loc[top_disks[source]] = dest
 
     def reset(self):
         pass
@@ -100,13 +105,14 @@ class TOH(Environment):
 
     @staticmethod
     def generate_state(size, steps):
-        goal_state = TOI.get_goal_dummy(size)
+        goal_state = TOH.get_goal_dummy(size)
 
         assert(goal_state.is_solution())
 
         state = goal_state
         for i in range(steps):
             actions = state.successors()
+            print(state, actions)
             state.apply_action(np.random.choice(actions))
 
         return state
