@@ -29,7 +29,7 @@ class TOH(Environment):
         for i, l in enumerate(self.loc):
             top_disks[l] = min(top_disks[l], i)
         return top_disks
-    
+
     def successors(self):
         successors = []
         top_disks = self.get_top_disks()
@@ -116,7 +116,6 @@ class TOH(Environment):
         state = goal_state
         for i in range(steps):
             actions = state.successors()
-            print(state, actions)
             state.apply_action(np.random.choice(actions))
 
         return state
