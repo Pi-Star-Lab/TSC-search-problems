@@ -307,7 +307,7 @@ def main():
     elif parameters.problem_domain == "Pancake":
         num_actions = parameters.problem_size - 1
     else: #TOH
-        num_actions = 6 #fixed pegs 4 so 3 + 2 + 1
+        num_actions = 3 * 3 #fixed pegs 4 so 3 + 2 + 1
 
     with KerasManager() as manager:
 

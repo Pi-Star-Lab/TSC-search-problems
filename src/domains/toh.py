@@ -14,6 +14,7 @@ class TOH(Environment):
         if isinstance(locations, str):
             locations = locations.split(' ')
         self.loc = locations
+        self.actions_id = [1, 2, 3, 100, 102, 103, 200, 201, 203, 300, 301, 302]
 
     # Return "[0,1,2]" from locations '0', '1', '2'
     def __str__(self):
@@ -42,8 +43,10 @@ class TOH(Environment):
                 elif top_disks[i] < top_disks[j]:
                     #move i to j
                     successors.append(i * 100 + j)
-    
-        return successors
+        succ_id = []
+        for s in successors:
+            succ_id.append(self.actions_id.index(s))
+        return succ_id
 
     def __eq__(self, other):
         return str(self.loc) == str(other.loc)
@@ -93,6 +96,7 @@ class TOH(Environment):
         return self.successors()
 
     def apply_action(self, action):
+        action = self.actions_id[action]
         source, dest = action // 100, action % 100
         top_disks = self.get_top_disks()
         self.loc[top_disks[source]] = dest
