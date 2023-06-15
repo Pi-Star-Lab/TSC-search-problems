@@ -12,6 +12,7 @@ from search.gbfs import GBFS
 from domains.sliding_tile_puzzle import SlidingTilePuzzle
 from domains.sokoban import Sokoban
 from domains.pancake import Pancake
+from domains.toh import TOH
 from search.puct import PUCT
 from curriculum.bootstrap import Bootstrap
 from curriculum.rw_curriculum import RWCurriculum
@@ -24,6 +25,8 @@ def get_state_generator(domain, size):
         return lambda distance: SlidingTilePuzzle.generate_state(size, distance)
     if domain == "Pancake":
         return lambda distance: Pancake.generate_state(size, distance)
+    if domain == "TOH":
+        return lambda distance: TOH.generate_state(size, distance)
     elif domain == "Witness":
         return lambda distance: WitnessState.generate_state(size, distance)
     elif domain == "Sokoban":
@@ -297,8 +300,13 @@ def main():
 
     start = time.time()
 
-    conv = True if parameters.problem_domain != 'Pancake' else False
-    num_actions = 4 if parameters.problem_domain != 'Pancake' else parameters.problem_size - 1
+    conv = True if parameters.problem_domain not in ['Pancake', 'TOH'] else False
+    if parameters.problem_domain not in ['Pancake', 'TOH']:
+        num_actions = 4
+    elif pparameters.problem_domain == "Pancake":
+        number_actions = parameters.problem_size - 1
+    else: #TOH
+        number_actions = 6 #fixed pegs 4 so 3 + 2 + 1 
 
     with KerasManager() as manager:
 
