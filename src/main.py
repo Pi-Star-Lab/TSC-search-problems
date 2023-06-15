@@ -301,12 +301,13 @@ def main():
     start = time.time()
 
     conv = True if parameters.problem_domain not in ['Pancake', 'TOH'] else False
+
     if parameters.problem_domain not in ['Pancake', 'TOH']:
         num_actions = 4
-    elif pparameters.problem_domain == "Pancake":
-        number_actions = parameters.problem_size - 1
+    elif parameters.problem_domain == "Pancake":
+        num_actions = parameters.problem_size - 1
     else: #TOH
-        number_actions = 6 #fixed pegs 4 so 3 + 2 + 1 
+        num_actions = 6 #fixed pegs 4 so 3 + 2 + 1
 
     with KerasManager() as manager:
 
