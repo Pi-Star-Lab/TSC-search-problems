@@ -119,3 +119,4 @@ class TOH(Environment):
             state.apply_action(np.random.choice(actions))
 
         return state
+

@@ -31,4 +31,6 @@ class Environment(ABC):
 
     def take_random_action(self):
         actions = self.successors()
-        self.apply_action(np.random.choice(actions))
+        action = np.random.choice(actions)
+        self.apply_action(action)
+        return action
