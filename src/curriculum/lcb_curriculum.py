@@ -13,10 +13,11 @@ from copy import deepcopy
 class LCBCurriculum(RWCurriculum):
 
     def __init__(self, **kwargs):
-        
-        super().__init__(**kwargs)
+
         self.goal_state_generator = kwargs['goal_gen']  ##TODO: use same for all Curr approaches
-   
+        del kwargs['goal_gen']
+        super().__init__(**kwargs)
+
     def generate_state(self, nn_model):
         # Requries policy to be optimized over Levin loss function
         # IMP
@@ -26,9 +27,10 @@ class LCBCurriculum(RWCurriculum):
         state = self.goal_state_generator()
         while np.log(depth) - log_prob_traj < log_budget:
             prev_state = deepcopy(state)
-            log_act_dist, _, _ = nn_model.predict(np.array([state.get_image_representation()]))
+            log_act_dist, act_dist, _ = nn_model.predict(np.array([state.get_image_representation()]))
             action = state.take_random_action()
-            log_prob_traj += log_act_dist[action]
+            log_prob_traj += log_act_dist[0][action]
+            #print(act_dist[0][action], log_act_dist[0][action], depth, np.exp(log_prob_traj))
             depth += 1
         return prev_state, depth - 1
 
@@ -50,7 +52,7 @@ class LCBCurriculum(RWCurriculum):
             for i in range(self._states_per_difficulty):
                 states[i], difficulty = self.generate_state(nn_model)
                 difficulties.append(difficulty)
-
+                #print(states[i], difficulty)
             _, number_solved, total_expanded, total_generated, sol_costs, sol_expansions = self.solve(states,
                         planner=planner, nn_model=nn_model, budget=budget, memory=memory, update=True)
 
