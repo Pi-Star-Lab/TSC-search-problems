@@ -10,6 +10,17 @@ from cmaes_teacher import CMAESTeacher
 import numpy as np
 from copy import deepcopy
 
+def get_forward_action(state, next_state):
+    """
+    TODO: write inverse action functions for each domain to avoid this
+    """
+    actions = state.successors()
+    for a in actions:
+        state_copy = deepcopy(state)
+        state_copy.apply_action(a)
+        if state_copy == next_state:
+            return a
+
 class LCBCurriculum(RWCurriculum):
 
     def __init__(self, **kwargs):
@@ -27,8 +38,9 @@ class LCBCurriculum(RWCurriculum):
         state = self.goal_state_generator()
         while np.log(depth) - log_prob_traj < log_budget:
             prev_state = deepcopy(state)
+            state.take_random_action()
             log_act_dist, act_dist, _ = nn_model.predict(np.array([state.get_image_representation()]))
-            action = state.take_random_action()
+            action = get_forward_action(state, prev_state)
             log_prob_traj += log_act_dist[0][action]
             #print(act_dist[0][action], log_act_dist[0][action], depth, np.exp(log_prob_traj))
             depth += 1
