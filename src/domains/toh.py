@@ -120,3 +120,8 @@ class TOH(Environment):
 
         return state
 
+    @staticmethod
+    def generate_random_state(size):
+
+        locations = np.random.randint(0,4,size)
+        return TOH(locations)
