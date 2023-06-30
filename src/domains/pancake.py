@@ -21,7 +21,6 @@ class Pancake(Environment):
         return ans
 
     def successors(self):
-        successors = []
         return list(range(0, len(self.stack) - 1))
 
     def __eq__(self, other):

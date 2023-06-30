@@ -17,10 +17,10 @@ from search.puct import PUCT
 from curriculum.bootstrap import Bootstrap
 from curriculum.rw_curriculum import RWCurriculum
 from curriculum.ts_curriculum import TSCurriculum
+from curriculum.lcb_curriculum import LCBCurriculum
 
 def get_state_generator(domain, size):
 
-    base_fn = None
     if domain == "SlidingTile":
         return lambda distance: SlidingTilePuzzle.generate_state(size, distance)
     if domain == "Pancake":
@@ -31,8 +31,17 @@ def get_state_generator(domain, size):
         return lambda distance: WitnessState.generate_state(size, distance)
     elif domain == "Sokoban":
         return lambda distance: Sokoban.generate_state(size, distance)
-    else:
-        raise NotImplementedError
+    raise NotImplementedError
+
+def get_goal_generator(domain, size):
+    if domain == "SlidingTile":
+        return lambda: SlidingTilePuzzle.get_goal_dummy(size)
+    elif domain == "Pancake":
+        return lambda: Pancake.get_goal_dummy(size)
+    elif domain == "TOH":
+        return lambda: TOH.get_goal_dummy(size)
+    raise NotImplementedError
+
 
 def search_time_limit(states, planner, nn_model, ncpus, time_limit_seconds):
     """
@@ -179,7 +188,9 @@ def main():
 
     parser.add_argument('--learn', action='store', default='',
                         dest='learning_mode',
-                        help='leave blank for no learning, bootstrap for boostrapping, curr for RW curriculum, tscl for teacher-student curriculum')
+                        help='leave blank for no learning, bootstrap for \
+                                boostrapping, curr for RW curriculum, tscl for \
+                                teacher-student curriculum, lcbc for levin-cost bound curriculum')
 
     parser.add_argument('--fixed-time', action='store_true', default=False,
                         dest='fixed_time',
@@ -318,6 +329,8 @@ def main():
                 parameters.problem_size is None else parameters.problem_size
         state_gen = get_state_generator(parameters.problem_domain,\
                         problem_size)
+        goal_gen = get_goal_generator(parameters.problem_domain,\
+                        problem_size)
         if parameters.learning_mode == "bootstrap":
             curriculum = Bootstrap(num_states = parameters.num_prob,
                                   model_name = parameters.model_name,
@@ -349,6 +362,17 @@ def main():
                                   initial_budget=int(parameters.search_budget),
                                   test_budget=parameters.test_budget,
                                   gradient_steps=int(parameters.gradient_steps))
+
+        elif parameters.learning_mode == "lcbc":
+            curriculum = LCBCurriculum(num_states = parameters.num_prob,
+                                  model_name = parameters.model_name,
+                                  ncpus=ncpus,
+                                  state_generator = state_gen,
+                                  test_set_path = parameters.test_path,
+                                  initial_budget=int(parameters.search_budget),
+                                  test_budget=parameters.test_budget,
+                                  gradient_steps=int(parameters.gradient_steps),
+                                  goal_gen = goal_gen)
 
 
         if parameters.search_algorithm == 'PUCT':
