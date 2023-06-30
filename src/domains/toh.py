@@ -109,14 +109,26 @@ class TOH(Environment):
 
     @staticmethod
     def generate_state(size, steps):
+        """
+        To do, implement backtrack
+        """
         goal_state = TOH.get_goal_dummy(size)
-
+        traj = []
         assert(goal_state.is_solution())
 
         state = goal_state
         for i in range(steps):
             actions = state.successors()
-            state.apply_action(np.random.choice(actions))
-
+            while actions != []:
+                ns = copy.deepcopy(state)
+                action = np.random.choice(actions)
+                ns.apply_action(action)
+                if ns not in traj:
+                    break
+                actions.remove(action)
+            #  if actions == [] then backtrack TODO
+            traj.append(state)
+            state = ns
         return state
+
 
