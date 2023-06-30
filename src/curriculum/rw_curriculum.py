@@ -54,8 +54,8 @@ class RWCurriculum(Curriculum):
                         planner = planner, nn_model = nn_model, budget = self._test_budget, memory = memory, update = False)
 
                 test_solve = test_solved / len(self._test_set)
-                print('Train solved: {}\t Test Solved:{}% Difficulty: {}'.format(
-                    number_solved / len(states) * 100, test_solve * 100, difficulty))
+                print('Iteration: {}\t Train solved: {}\t Test Solved:{}% Difficulty: {}'.format(
+                    iteration, number_solved / len(states) * 100, test_solve * 100, difficulty))
 
                 self._time.append(self._time[-1] + (end - start))
                 self._performance.append(test_solve)

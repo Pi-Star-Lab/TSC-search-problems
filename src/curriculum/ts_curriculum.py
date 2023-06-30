@@ -64,8 +64,8 @@ class TSCurriculum(RWCurriculum):
 
             test_solve = test_solved / len(self._test_set)
             mean_difficulty = sum(difficulties) / len(difficulties)
-            print('Train solved: {}\t Test Solved:{}% Mean Difficulty: {}'.format(
-                number_solved / len(states) * 100, test_solve * 100, mean_difficulty))
+            print('Iteration: {}\t Train solved: {}\t Test Solved:{}% Mean Difficulty: {}'.format(
+                iteration, number_solved / len(states) * 100, test_solve * 100, mean_difficulty))
 
             self._time.append(self._time[-1] + (end - start))
             self._performance.append(test_solve)
