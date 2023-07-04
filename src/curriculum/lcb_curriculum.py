@@ -29,13 +29,13 @@ class LCBCurriculum(RWCurriculum):
         del kwargs['goal_gen']
         super().__init__(**kwargs)
 
-    def generate_state(self, nn_model):
+    def generate_state(self, nn_model, base_state, budget):
         # Requries policy to be optimized over Levin loss function
         # IMP
-        log_budget = np.log(self._initial_budget)
+        log_budget = np.log(budget)
         log_prob_traj = 0
         depth = 1
-        state = self.goal_state_generator()
+        state = base_state
         while np.log(depth) - log_prob_traj < log_budget:
             prev_state = deepcopy(state)
             state.take_random_action()
@@ -54,6 +54,8 @@ class LCBCurriculum(RWCurriculum):
         budget = self._initial_budget
         test_solve = 0
         memory = Memory()
+        expansions_per_itr = None
+        states_per_itr = None
 
         while test_solve < 1:
             start = time.time()
@@ -62,12 +64,20 @@ class LCBCurriculum(RWCurriculum):
             states = {}
             difficulties = []
             for i in range(self._states_per_difficulty):
-                states[i], difficulty = self.generate_state(nn_model)
+                if expansions_per_itr is not None:
+                    base_state = states_per_itr[i]
+                    new_budget = self._initial_budget - expansions_per_itr[i]
+                else:
+                    base_state = self.goal_state_generator()
+                    new_budget = self._initial_budget
+                states[i], difficulty = self.generate_state(nn_model, base_state, new_budget)
                 difficulties.append(difficulty)
                 #print(states[i], difficulty)
             _, number_solved, total_expanded, total_generated, sol_costs, sol_expansions = self.solve(states,
                         planner=planner, nn_model=nn_model, budget=budget, memory=memory, update=True)
 
+            staters_per_itr = states
+            expansions_per_tr = sol_expansions
             end = time.time()
             with open(join(self._log_folder + 'training_lcbc_' + self._model_name + "_curriculum"), 'a') as results_file:
                 results_file.write(("{:d}, {:d}, {:d}, {:d}, {:d}, {:d}, {:d}, {:f} ".format(difficulty,
