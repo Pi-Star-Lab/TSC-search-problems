@@ -49,7 +49,7 @@ class TOH(Environment):
         return succ_id
 
     def __eq__(self, other):
-        return str(self.loc) == str(other.loc)
+        return str(self) == str(other)
 
     def __hash__(self):
         return hash(str(self.loc))
@@ -58,7 +58,8 @@ class TOH(Environment):
         """
         Return the one-hot encoding of the pancake problem
         """
-        return np.eye(len(self.loc))[self.loc].reshape(-1)
+
+        return np.eye(4)[self.loc].reshape(-1)
 
     def heuristic_value(self, goal): #TODO
         # Currently Goal is assumed to be [0,1,2,3,4,...]
@@ -120,3 +121,8 @@ class TOH(Environment):
 
         return state
 
+    @staticmethod
+    def generate_random_state(size):
+
+        locations = np.random.randint(0,4,size)
+        return TOH(locations)

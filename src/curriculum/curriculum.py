@@ -113,6 +113,7 @@ class Curriculum(ABC):
         import pickle
         for i in range(num_samples):
             states[i] = state_gen(max_steps)
+            print(states[i])
         with open(path, 'wb') as fname:
             pickle.dump(states, fname)
 
