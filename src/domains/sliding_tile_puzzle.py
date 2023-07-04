@@ -181,7 +181,7 @@ class SlidingTilePuzzle(Environment):
     def __str__(self):
         return " ".join(map(str, self._tiles))
 
-   
+
     @staticmethod
     def get_goal_dummy(size):
         size = size ** 2
@@ -196,7 +196,7 @@ class SlidingTilePuzzle(Environment):
         generate a STP instance by taking n steps from goal
         size: 4,9,16,25 ..
         """
-        goal_state = SlidingTilePuzzle(size)
+        goal_state = SlidingTilePuzzle.get_goal_dummy(size)
         assert(goal_state.is_solution())
 
         state = goal_state
