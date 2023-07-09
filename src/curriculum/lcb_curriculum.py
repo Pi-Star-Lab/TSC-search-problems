@@ -55,7 +55,7 @@ class LCBCurriculum(RWCurriculum):
         test_solve = 0
         memory = Memory()
 
-        while test_solve < 0.9:
+        while test_solve < 1:
             start = time.time()
             number_solved = 0
 

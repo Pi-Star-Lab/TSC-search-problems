@@ -24,7 +24,7 @@ class RWCurriculum(Curriculum):
         memory = Memory()
         ## TODO: remove this TMP!
 
-        while test_solve < 0.9:
+        while test_solve < 1:
             start = time.time()
             number_solved = 0
 

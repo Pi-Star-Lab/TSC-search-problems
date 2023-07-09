@@ -38,7 +38,7 @@ class Bootstrap(Curriculum):
             steps = int(steps)
             states[i] = self._state_gen(steps)
 
-        while test_solve < 0.9: #replacing for comparison
+        while test_solve < 1: #replacing for comparison
             start = time.time()
             #print("Iteration: {}:".format(iteration))
             number_solved = 0

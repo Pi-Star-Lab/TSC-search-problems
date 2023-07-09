@@ -33,7 +33,7 @@ class TSCurriculum(RWCurriculum):
         teacher = CMAESTeacher(batch_size=self._states_per_difficulty, mean=4, std=4)
         ## TODO: remove this TMP!
 
-        while test_solve < 0.9:
+        while test_solve < 1:
             start = time.time()
             number_solved = 0
 
