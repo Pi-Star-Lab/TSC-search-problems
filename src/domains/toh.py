@@ -118,11 +118,18 @@ class TOH(Environment):
         for i in range(steps):
             actions = state.successors()
             state.apply_action(np.random.choice(actions))
+        if state.is_solution():
+            actions = state.successors()
+            state.apply_action(np.random.choice(actions))
 
         return state
 
     @staticmethod
     def generate_random_state(size):
-
         locations = np.random.randint(0,4,size)
-        return TOH(locations)
+        state = TOH(locations)
+        if state.is_solution():
+            actions = state.successors()
+            state.apply_action(np.random.choice(actions))
+
+        return state

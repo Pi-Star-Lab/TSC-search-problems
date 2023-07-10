@@ -91,9 +91,16 @@ class Pancake(Environment):
         for i in range(steps):
             actions = state.successors()
             state.apply_action(np.random.choice(actions))
+        if state.is_solution():
+            actions = state.successors()
+            state.apply_action(np.random.choice(actions))
 
         return state
 
     @staticmethod
     def generate_random_state(size):
-        return Pancake(list(np.random.permutation(size)))
+        state = Pancake(list(np.random.permutation(size)))
+        if state.is_solution():
+            actions = state.successors()
+            state.apply_action(np.random.choice(actions))
+        return state

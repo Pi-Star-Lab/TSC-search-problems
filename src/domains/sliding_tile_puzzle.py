@@ -204,7 +204,9 @@ class SlidingTilePuzzle(Environment):
 
             actions = state.successors()
             state.apply_action(np.random.choice(actions))
-
+        if state.is_solution():
+            actions = state.successors()
+            state.apply_action(np.random.choice(actions))
         return state
 
     @staticmethod
