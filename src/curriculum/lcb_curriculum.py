@@ -73,9 +73,12 @@ class LCBCurriculum(RWCurriculum):
                 states[i], difficulty = self.generate_state(nn_model, base_state, new_budget)
                 difficulties.append(difficulty)
                 #print(states[i], difficulty)
+
+            self._traj = []
             _, number_solved, total_expanded, total_generated, sol_costs, sol_expansions = self.solve(states,
                         planner=planner, nn_model=nn_model, budget=budget, memory=memory, update=True)
 
+            trajs = self.get_traj()
             staters_per_itr = states
             expansions_per_tr = sol_expansions
             end = time.time()
