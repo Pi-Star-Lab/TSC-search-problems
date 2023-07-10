@@ -93,3 +93,7 @@ class Pancake(Environment):
             state.apply_action(np.random.choice(actions))
 
         return state
+
+    @staticmethod
+    def generate_random_state(size):
+        return Pancake(list(np.random.permutation(size)))

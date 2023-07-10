@@ -206,3 +206,7 @@ class SlidingTilePuzzle(Environment):
             state.apply_action(np.random.choice(actions))
 
         return state
+
+    @staticmethod
+    def generate_random_state(size:int):
+        raise NotImplementedError
