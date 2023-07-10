@@ -7,7 +7,7 @@ class UnivarGaussianTeacher:
         self.opt = UnivarEvolutionaryStrategy(mean=mean, sigma = std, popsize = batch_size)
 
     def get_action(self):
-        action = round(self.opt.ask())
+        action = max(1, round(self.opt.ask()))
         return action
 
     def get_actions(self, num:int):
