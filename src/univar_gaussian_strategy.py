@@ -3,7 +3,7 @@ import sys
 
 class UnivarEvolutionaryStrategy():
 
-    def __init__(self, mean, sigma, popsize, elite = 0.5, min_var = 5):
+    def __init__(self, mean, sigma, popsize, elite = 0.5, min_var = 2):
 
         self.mean = mean
         self.std = sigma
