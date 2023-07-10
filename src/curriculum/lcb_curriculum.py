@@ -29,16 +29,19 @@ class LCBCurriculum(RWCurriculum):
         del kwargs['goal_gen']
         super().__init__(**kwargs)
 
-    def generate_state(self, nn_model, base_state, budget):
+    def generate_state(self, nn_model, traj, budget):
         # Requries policy to be optimized over Levin loss function
         # IMP
         log_budget = np.log(budget)
         log_prob_traj = 0
         depth = 1
-        state = base_state
+        state = traj[0]
         while np.log(depth) - log_prob_traj < log_budget:
             prev_state = deepcopy(state)
-            state.take_random_action()
+            if depth < len(traj):
+                state = traj[depth]
+            else:
+                state.take_random_action()
             log_act_dist, act_dist, _ = nn_model.predict(np.array([state.get_image_representation()]))
             action = get_forward_action(state, prev_state)
             log_prob_traj += log_act_dist[0][action]
@@ -54,8 +57,7 @@ class LCBCurriculum(RWCurriculum):
         budget = self._initial_budget
         test_solve = 0
         memory = Memory()
-        expansions_per_itr = None
-        states_per_itr = None
+        trajs = None
 
         while test_solve < 1:
             start = time.time()
@@ -63,14 +65,14 @@ class LCBCurriculum(RWCurriculum):
 
             states = {}
             difficulties = []
+            goal = self.goal_state_generator()
             for i in range(self._states_per_difficulty):
-                if expansions_per_itr is not None:
-                    base_state = states_per_itr[i]
-                    new_budget = self._initial_budget - expansions_per_itr[i]
+                if trajs is not None and trajs[i] is not None:
+                    traj = trajs[i].get_states()
                 else:
-                    base_state = self.goal_state_generator()
-                    new_budget = self._initial_budget
-                states[i], difficulty = self.generate_state(nn_model, base_state, new_budget)
+                    traj = []
+                traj = [goal] + traj # TODO: handle traj part and append goal to traj too! useful for cases with multiple goals
+                states[i], difficulty = self.generate_state(nn_model, traj, budget)
                 difficulties.append(difficulty)
                 #print(states[i], difficulty)
 
@@ -79,6 +81,8 @@ class LCBCurriculum(RWCurriculum):
                         planner=planner, nn_model=nn_model, budget=budget, memory=memory, update=True)
 
             trajs = self.get_traj()
+            #for state in trajs[0].get_states():
+            #    print(state)
             staters_per_itr = states
             expansions_per_tr = sol_expansions
             end = time.time()
