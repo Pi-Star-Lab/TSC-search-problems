@@ -28,6 +28,7 @@ class Curriculum(ABC):
         self._time = [0]
         self._solution_quality = [0]
         self._solution_expansions = [0]
+        self._traj = []
 
 
         self._log_folder = 'training_logs/'
@@ -73,6 +74,7 @@ class Curriculum(ABC):
                 total_expanded += result[2]
                 total_generated += result[3]
                 puzzle_name = result[4]
+                self._traj.append(trajectory)
 
                 if has_found_solution:
                     #print(trajectory.get_solution_costs())
@@ -102,6 +104,11 @@ class Curriculum(ABC):
 
             batch_problems.clear()
         return (sum_sol_cost, number_solved, total_expanded, total_generated, sol_costs, sol_expansions)
+
+    def get_traj(self):
+        traj = self._traj
+        self._traj = []
+        return traj
 
     @abstractmethod
     def learn_online(self, planner, nn_model):

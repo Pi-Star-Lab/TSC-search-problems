@@ -29,19 +29,23 @@ class LCBCurriculum(RWCurriculum):
         del kwargs['goal_gen']
         super().__init__(**kwargs)
 
-    def generate_state(self, nn_model):
+    def generate_state(self, nn_model, traj, budget):
         # Requries policy to be optimized over Levin loss function
         # IMP
-        log_budget = np.log(self._initial_budget)
+        log_budget = np.log(budget)
         log_prob_traj = 0
         depth = 1
-        state = self.goal_state_generator()
+        state = traj[0]
         while np.log(depth) - log_prob_traj < log_budget:
             prev_state = deepcopy(state)
-            state.take_random_action()
+            if depth < len(traj):
+                state = traj[depth]
+            else:
+                state.take_random_action()
             log_act_dist, act_dist, _ = nn_model.predict(np.array([state.get_image_representation()]))
             action = get_forward_action(state, prev_state)
             log_prob_traj += log_act_dist[0][action]
+
             #print(act_dist[0][action], log_act_dist[0][action], depth, np.exp(log_prob_traj))
             depth += 1
         return prev_state, depth - 1
@@ -54,6 +58,7 @@ class LCBCurriculum(RWCurriculum):
         budget = self._initial_budget
         test_solve = 0
         memory = Memory()
+        trajs = None
 
         while test_solve < 1:
             start = time.time()
@@ -62,12 +67,23 @@ class LCBCurriculum(RWCurriculum):
             states = {}
             difficulties = []
             for i in range(self._states_per_difficulty):
-                states[i], difficulty = self.generate_state(nn_model)
+                goal = self.goal_state_generator()
+                if trajs is not None and trajs[i] is not None:
+                    traj = trajs[i].get_states()
+                else:
+                    traj = []
+                traj = [goal] + traj # TODO: handle traj part and append goal to traj too! useful for cases with multiple goals
+                states[i], difficulty = self.generate_state(nn_model, traj, budget)
                 difficulties.append(difficulty)
                 #print(states[i], difficulty)
+
+            self._traj = []
             _, number_solved, total_expanded, total_generated, sol_costs, sol_expansions = self.solve(states,
                         planner=planner, nn_model=nn_model, budget=budget, memory=memory, update=True)
 
+            trajs = self.get_traj()
+            #for state in trajs[0].get_states():
+            #    print(state)
             end = time.time()
             with open(join(self._log_folder + 'training_lcbc_' + self._model_name + "_curriculum"), 'a') as results_file:
                 results_file.write(("{:d}, {:d}, {:d}, {:d}, {:d}, {:d}, {:d}, {:f} ".format(difficulty,
