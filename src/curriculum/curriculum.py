@@ -127,8 +127,6 @@ class Curriculum(ABC):
             pickle.dump(states, fname)
 
     def print_results(self):
-        self._test_set = pickle.load(open(test_set_path, 'rb')) ##TAKE THIS OUTSIDE
-        self._expansions = [0]
         print("Number Avg Test Expasions:", self._test_expansions / len(self._test_set))
         print("Test Avg Solution Quality:", self._test_solution_quality / len(self._test_set))
         print("Train Expansions:", self._expansions)
