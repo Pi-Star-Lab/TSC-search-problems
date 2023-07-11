@@ -52,6 +52,9 @@ class RWCurriculum(Curriculum):
             test_sol_qual, test_solved, test_expanded, test_generated, _, _ = self.solve(self._test_set,\
                     planner = planner, nn_model = nn_model, budget = self._test_budget, memory = memory, update = False)
 
+            self._test_solution_quality = test_sol_qual
+            self._test_expansions = test_expanded
+
             test_solve = test_solved / len(self._test_set)
             print('Iteration: {}\t Train solved: {}\t Test Solved:{}% Difficulty: {}'.format(
                 iteration, number_solved / len(states) * 100, test_solve * 100, difficulty))

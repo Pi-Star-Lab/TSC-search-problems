@@ -28,6 +28,8 @@ class Curriculum(ABC):
         self._time = [0]
         self._solution_quality = [0]
         self._solution_expansions = [0]
+        self._test_solution_quality = None
+        self._test_expansions = None
         self._traj = []
 
 
@@ -125,8 +127,12 @@ class Curriculum(ABC):
             pickle.dump(states, fname)
 
     def print_results(self):
-        print(self._expansions)
-        print(self._performance)
-        print(self._solution_quality)
-        print(self._solution_expansions)
-        print(self._time)
+        self._test_set = pickle.load(open(test_set_path, 'rb')) ##TAKE THIS OUTSIDE
+        self._expansions = [0]
+        print("Number Avg Test Expasions:", self._test_expansions / len(self._test_set))
+        print("Test Avg Solution Quality:", self._test_solution_quality / len(self._test_set))
+        print("Train Expansions:", self._expansions)
+        print("Train percent solved:", self._performance)
+        print("Train Sol Quality:", self._solution_quality)
+        print("Train Expansions:", self._solution_expansions)
+        print("Train Cumulative Time:", self._time)
