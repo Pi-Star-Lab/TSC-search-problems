@@ -45,6 +45,7 @@ class LCBCurriculum(RWCurriculum):
             log_act_dist, act_dist, _ = nn_model.predict(np.array([state.get_image_representation()]))
             action = get_forward_action(state, prev_state)
             log_prob_traj += log_act_dist[0][action]
+
             #print(act_dist[0][action], log_act_dist[0][action], depth, np.exp(log_prob_traj))
             depth += 1
         return prev_state, depth - 1
@@ -65,8 +66,8 @@ class LCBCurriculum(RWCurriculum):
 
             states = {}
             difficulties = []
-            goal = self.goal_state_generator()
             for i in range(self._states_per_difficulty):
+                goal = self.goal_state_generator()
                 if trajs is not None and trajs[i] is not None:
                     traj = trajs[i].get_states()
                 else:
@@ -83,8 +84,6 @@ class LCBCurriculum(RWCurriculum):
             trajs = self.get_traj()
             #for state in trajs[0].get_states():
             #    print(state)
-            staters_per_itr = states
-            expansions_per_tr = sol_expansions
             end = time.time()
             with open(join(self._log_folder + 'training_lcbc_' + self._model_name + "_curriculum"), 'a') as results_file:
                 results_file.write(("{:d}, {:d}, {:d}, {:d}, {:d}, {:d}, {:d}, {:f} ".format(difficulty,
