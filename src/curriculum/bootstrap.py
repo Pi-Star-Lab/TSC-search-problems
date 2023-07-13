@@ -25,7 +25,6 @@ class Bootstrap(Curriculum):
         memory = Memory()
 
         current_solved_puzzles = set()
-        last_puzzle = list(self._states)[-1]
 
         test_solve = 0
         """
@@ -38,11 +37,12 @@ class Bootstrap(Curriculum):
             steps = self._min_steps + random.random() * (self._max_steps - self._min_steps)
             steps = int(steps)
             states[i] = self._state_gen(steps)
+        
+        last_puzzle = list(states)[-1]
 
         while test_solve < 1: #replacing for comparison
             start = time.time()
-            #print("Iteration: {}:".format(iteration))
-            number_solved = 0
+            #print("Iteration: {}:".format(iteration)) number_solved = 0
 
             batch_problems = {}
             for name, state in states.items():
