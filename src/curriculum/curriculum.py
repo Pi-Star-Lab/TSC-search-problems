@@ -51,6 +51,7 @@ class Curriculum(ABC):
         """
         batch_problems = {}
         current_solved_puzzles = set()
+        last_puzzle = list(states)[-1]
         number_solved = 0
         total_expanded = 0
         total_generated = 0
@@ -64,7 +65,7 @@ class Curriculum(ABC):
             batch_problems[name] = state
 
             if len(batch_problems) < self._batch_size and \
-                    len(states) - number_solved  > self._batch_size:
+                    last_puzzle != name:
                 continue
 
             with ProcessPoolExecutor(max_workers = self._ncpus) as executor:

@@ -25,6 +25,7 @@ class Bootstrap(Curriculum):
         memory = Memory()
 
         current_solved_puzzles = set()
+        last_puzzle = list(self._states)[-1]
 
         test_solve = 0
         """
@@ -51,7 +52,7 @@ class Bootstrap(Curriculum):
 
                 batch_problems[name] = state
 
-                if len(batch_problems) < self._batch_size and self._number_problems - len(current_solved_puzzles) > self._batch_size:
+                if len(batch_problems) < self._batch_size and last_puzzle != name:
                     continue
 
                 with ProcessPoolExecutor(max_workers = self._ncpus) as executor:

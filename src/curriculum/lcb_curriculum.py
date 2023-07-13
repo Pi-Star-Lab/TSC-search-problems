@@ -42,7 +42,11 @@ class LCBCurriculum(RWCurriculum):
                 state = traj[depth]
             else:
                 state.take_random_action()
-            log_act_dist, act_dist, _ = nn_model.predict(np.array([state.get_image_representation()]))
+            predictions = nn_model.predict(np.array([state.get_image_representation()]))
+            if len(predictions) == 3: #heuristic function included?
+                log_act_dist, act_dist, _ = predictions
+            else:
+                log_act_dist, act_dist = predictions
             action = get_forward_action(state, prev_state)
             log_prob_traj += log_act_dist[0][action]
 
