@@ -6,7 +6,7 @@ from concurrent.futures.process import ProcessPoolExecutor
 
 class Curriculum(ABC):
     def __init__(self, num_states, model_name, state_generator, test_set_path,\
-            ncpus=1, initial_budget=400, test_budget=400, gradient_steps=10):
+            ncpus=1, initial_budget=400, test_budget=400, gradient_steps=10, time_limit = -1):
 
         self._model_name = model_name
 
@@ -31,7 +31,7 @@ class Curriculum(ABC):
         self._test_solution_quality = None
         self._test_expansions = None
         self._traj = []
-
+        self._time_limit = time_limit 
 
         self._log_folder = 'training_logs/'
         self._models_folder = 'trained_models_online/' + self._model_name + "_curriculum"

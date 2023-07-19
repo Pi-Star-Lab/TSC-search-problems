@@ -24,7 +24,7 @@ class RWCurriculum(Curriculum):
         memory = Memory()
         ## TODO: remove this TMP!
 
-        while test_solve < 1:
+        while self._time[-1] < self._time_limit:
             start = time.time()
             number_solved = 0
 
@@ -47,8 +47,9 @@ class RWCurriculum(Curriculum):
                                                                                  end-start)))
                 results_file.write('\n')
 
+            self._time.append(self._time[-1] + (end - start))
 
-
+            """ 
             test_sol_qual, test_solved, test_expanded, test_generated, _, _ = self.solve(self._test_set,\
                     planner = planner, nn_model = nn_model, budget = self._test_budget, memory = memory, update = False)
 
@@ -56,10 +57,7 @@ class RWCurriculum(Curriculum):
             self._test_expansions = test_expanded
 
             test_solve = test_solved / len(self._test_set)
-            print('Iteration: {}\t Train solved: {}\t Test Solved:{}% Difficulty: {}'.format(
-                iteration, number_solved / len(states) * 100, test_solve * 100, difficulty))
-
-            self._time.append(self._time[-1] + (end - start))
+            
             self._performance.append(test_solve)
             self._expansions.append(self._expansions[-1] + total_expanded)
             if test_solved == 0:
@@ -68,10 +66,32 @@ class RWCurriculum(Curriculum):
             else:
                 self._solution_quality.append(test_sol_qual / test_solved)
                 self._solution_expansions.append(test_expanded / test_solved)
+            """ 
 
             if self.solvable(nn_model, number_solved, total_expanded, total_generated):
                 difficulty += 1
+            
+            print('Iteration: {}\t Train solved: {}\t Difficulty: {}'.format(
+                iteration, number_solved / len(states) * 100, difficulty))
             iteration += 1
+        
+        test_sol_qual, test_solved, test_expanded, test_generated, _, _ = self.solve(self._test_set,\
+                planner = planner, nn_model = nn_model, budget = self._test_budget, memory = memory, update = False)
+
+        self._test_solution_quality = test_sol_qual
+        self._test_expansions = test_expanded
+
+        test_solve = test_solved / len(self._test_set)
+        
+        self._performance.append(test_solve)
+        self._expansions.append(self._expansions[-1] + total_expanded)
+        if test_solved == 0:
+            self._solution_quality.append(0)
+            self._solution_expansions.append(0)
+        else:
+            self._solution_quality.append(test_sol_qual / test_solved)
+            self._solution_expansions.append(test_expanded / test_solved)
+
         self.print_results()
 
     def solvable(self, nn, number_solved, total_expanded, total_generated): #maybe just use nn

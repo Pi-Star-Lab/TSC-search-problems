@@ -40,7 +40,7 @@ class Bootstrap(Curriculum):
         
         last_puzzle = list(states)[-1]
 
-        while test_solve < 1: #replacing for comparison
+        while self._time[-1] < self._time_limit: #replacing for comparison
             start = time.time()
             #print("Iteration: {}:".format(iteration)) number_solved = 0
 
@@ -97,8 +97,11 @@ class Bootstrap(Curriculum):
             if number_solved == 0:
                 budget *= 2
                 print('Budget: ', budget)
-
+        
             self._expansions.append(total_expanded)
+
+            self._time.append(self._time[-1] + (end - start))
+            """
             test_sol_qual, test_solved, test_expanded, test_generated, _, _ = self.solve(self._test_set,\
                     planner = planner, nn_model = nn_model, budget = self._test_budget, memory = memory, update = False) #TODO: remove this hardcode
 
@@ -106,7 +109,6 @@ class Bootstrap(Curriculum):
             self._test_expansions = test_expanded
 
             test_solve = test_solved/len(self._test_set)
-            self._time.append(self._time[-1] + (end - start))
             if test_solved == 0:
                 self._solution_quality.append(0)
                 self._solution_expansions.append(0)
@@ -114,10 +116,25 @@ class Bootstrap(Curriculum):
                 self._solution_quality.append(test_sol_qual / test_solved)
                 self._solution_expansions.append(test_expanded / test_solved)
             self._performance.append(test_solve)
-            print('Training solve: {}%\t Test Solve: {}%'.format(
-                number_solved / len(states) * 100, test_solve * 100))
+            """
+            print('Training solve: {}%\t'.format(
+                number_solved / len(states) * 100))
 
             iteration += 1
 
+        test_sol_qual, test_solved, test_expanded, test_generated, _, _ = self.solve(self._test_set,\
+                planner = planner, nn_model = nn_model, budget = self._test_budget, memory = memory, update = False) #TODO: remove this hardcode
+
+        self._test_solution_quality = test_sol_qual
+        self._test_expansions = test_expanded
+
+        test_solve = test_solved/len(self._test_set)
+        if test_solved == 0:
+            self._solution_quality.append(0)
+            self._solution_expansions.append(0)
+        else:
+            self._solution_quality.append(test_sol_qual / test_solved)
+            self._solution_expansions.append(test_expanded / test_solved)
+        self._performance.append(test_solve)
         self.print_results()
 

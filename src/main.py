@@ -210,6 +210,9 @@ def main():
 
     parser.add_argument('-num-prob', action='store', dest='num_prob', type=int, default=256,
                         help='Number of problems to be considered each iteration')
+    
+    parser.add_argument('-learn-time-limit', action='store', dest='learn_time_limit', type=int, default=-1,
+                        help='When to stop?')
     parameters = parser.parse_args()
 
     states = {}
@@ -339,7 +342,8 @@ def main():
                                   test_set_path = parameters.test_path,
                                   initial_budget=int(parameters.search_budget),
                                   test_budget=parameters.test_budget,
-                                  gradient_steps=int(parameters.gradient_steps))
+                                  gradient_steps=int(parameters.gradient_steps),
+                                  time_limit=int(parameters.learn_time_limit))
 
         elif parameters.learning_mode == "curr":
 
@@ -351,7 +355,8 @@ def main():
                                   test_set_path = parameters.test_path,
                                   initial_budget=int(parameters.search_budget),
                                   test_budget=parameters.test_budget,
-                                  gradient_steps=int(parameters.gradient_steps))
+                                  gradient_steps=int(parameters.gradient_steps),
+                                  time_limit=int(parameters.learn_time_limit))
 
         elif parameters.learning_mode == "tscl":
             curriculum = TSCurriculum(num_states = parameters.num_prob,
@@ -361,7 +366,8 @@ def main():
                                   test_set_path = parameters.test_path,
                                   initial_budget=int(parameters.search_budget),
                                   test_budget=parameters.test_budget,
-                                  gradient_steps=int(parameters.gradient_steps))
+                                  gradient_steps=int(parameters.gradient_steps),
+                                  time_limit=int(parameters.learn_time_limit))
 
         elif parameters.learning_mode == "lcbc":
             curriculum = LCBCurriculum(num_states = parameters.num_prob,
@@ -372,6 +378,7 @@ def main():
                                   initial_budget=int(parameters.search_budget),
                                   test_budget=parameters.test_budget,
                                   gradient_steps=int(parameters.gradient_steps),
+                                  time_limit=int(parameters.learn_time_limit),
                                   goal_gen = goal_gen)
 
 
