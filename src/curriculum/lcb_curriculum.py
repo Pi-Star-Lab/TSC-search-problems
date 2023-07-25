@@ -9,6 +9,11 @@ from bandit import NonStatBandit
 from cmaes_teacher import CMAESTeacher
 import numpy as np
 from copy import deepcopy
+from scipy.special import softmax
+
+def norm(ar):
+    ar = np.array(ar)
+    return ar / sum(ar)
 
 def get_forward_action(state, next_state):
     """
@@ -36,22 +41,64 @@ class LCBCurriculum(RWCurriculum):
         log_prob_traj = 0
         depth = 1
         state = traj[0]
+        print(state)
         while np.log(depth) - log_prob_traj < log_budget:
             prev_state = deepcopy(state)
             if depth < len(traj):
                 state = traj[depth]
-            else:
-                state.take_random_action()
-            predictions = nn_model.predict(np.array([state.get_image_representation()]))
-            if len(predictions) == 3: #heuristic function included?
-                log_act_dist, act_dist, _ = predictions
-            else:
-                log_act_dist, act_dist = predictions
-            action = get_forward_action(state, prev_state)
-            log_prob_traj += log_act_dist[0][action]
+                predictions = nn_model.predict(np.array([state.get_image_representation()]))
+                if len(predictions) == 3: #heuristic function included?
+                    log_act_dist, act_dist, _ = predictions
+                else:
+                    log_act_dist, act_dist = predictions
+                action = get_forward_action(state, prev_state)
+                log_prob_traj += log_act_dist[0][action]
 
+            else:
+                #state.take_random_action()
+                back_actions = state.successors()
+                ns = [deepcopy(state) for a in back_actions]
+                for i in range(len(ns)):
+                    ns[i].apply_action(back_actions[i])
+                
+                log_act_dist, act_dist = [], []
+                for s in ns:
+                    predictions = nn_model.predict(np.array([s.get_image_representation()]))
+                    if len(predictions) == 3: #heuristic function included?
+                        log_ad, ad, _ = predictions
+                    else:
+                        log_ad, ad = predictions
+                    log_act_dist.append(log_ad[0])
+                    act_dist.append(ad[0])
+                """
+                predictions = nn_model.predict(np.array([s.get_image_representation() for s in ns]))
+                if len(predictions) == 3: #heuristic function included?
+                    log_act_dist, act_dist, _ = predictions
+                else:
+                    log_act_dist, act_dist = predictions
+                """
+                actions = [get_forward_action(s, state) for s in ns]
+                for i in range(len(ns)):
+                    print("next state --- state --- action", ns[i], state, state.actions_id[actions[i]])
+                    print(act_dist[i], actions[i])
+                p = norm([act_dist[i][a] for i,a in enumerate(actions)])
+                print([act_dist[i][a] for i,a in enumerate(actions)])
+                for i, s in enumerate(ns):
+                    print(p[i], s)
+                """
+                from domains.toh import TOH
+                if TOH([0,2,1,3,3,3,3,3,3]) == state and TOH([1,2,1,3,3,3,3,3,3]) == ns[0]:
+                    import sys
+                    sys.exit(1)
+                """
+                idx = np.random.choice(range(len(ns)), p = p)
+                log_prob_traj += log_act_dist[idx][actions[idx]]
+                state = ns[idx]
+            #print(state, "Depth:", depth, "Prob Traj:", np.exp(log_prob_traj), "Prob action:", np.exp(log_act_dist[0][action]), "bound:", depth / np.exp(log_prob_traj))
+            print(state, "Depth:", depth, "Prob Traj:", np.exp(log_prob_traj), "bound:", depth / np.exp(log_prob_traj))
             #print(act_dist[0][action], log_act_dist[0][action], depth, np.exp(log_prob_traj))
             depth += 1
+        print("-" * 100)
         return prev_state, depth - 1
 
     def learn_online(self, planner, nn_model):
@@ -135,7 +182,8 @@ class LCBCurriculum(RWCurriculum):
         self._test_expansions = test_expanded
 
         test_solve = test_solved / len(self._test_set)
-
+        
+        print("Test Solved:", test_solve)
         self._performance.append(test_solve)
         self._expansions.append(self._expansions[-1] + total_expanded)
         if test_solved == 0:
