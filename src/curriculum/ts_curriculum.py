@@ -99,6 +99,7 @@ class TSCurriculum(RWCurriculum):
 
         test_solve = test_solved / len(self._test_set)
 
+        print("Test Solved:", test_solve)
         self._performance.append(test_solve)
         self._expansions.append(self._expansions[-1] + total_expanded)
         if test_solved == 0:
