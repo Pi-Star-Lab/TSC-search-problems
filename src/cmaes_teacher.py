@@ -30,6 +30,6 @@ class CMAESTeacher:
         self.cma.tell(sols)
 
         ## restart
-        if self.cma.stop():
+        if self.cma.should_stop():
             print("restart")
             self.cma = CMA(mean=self.cma.mean, sigma=self.init_std, population_size=self.popsize)
