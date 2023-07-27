@@ -4,6 +4,8 @@ from cmaes import CMA
 class CMAESTeacher:
     def __init__(self, batch_size, mean, std = 2):
         self.batch_size = batch_size
+        self.init_std = std
+        self.popsize = batch_size
         mean = np.array([mean, .0], ndmin=1) ##TODO: remove the padding in cmaes
         print(mean.shape)
         self.cma = CMA(mean=mean, sigma = std, population_size = batch_size)
@@ -26,3 +28,8 @@ class CMAESTeacher:
             sols.append(([actions[i], 0.0], -rewards[i])) # cma es minimizes
         print(len(sols))
         self.cma.tell(sols)
+
+        ## restart
+        if self.cma.stop():
+            print("restart")
+            self.cma = CMA(mean=self.cma.mean, sigma=self.init_std, population_size=self.popsize)
