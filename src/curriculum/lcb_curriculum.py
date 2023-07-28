@@ -21,6 +21,31 @@ def get_forward_action(state, next_state):
         if state_copy == next_state:
             return a
 
+def greedy_search(nn_model, state, budget):
+    
+    depth = 0
+    path = []
+    state = deepcopy(state)
+    while depth < budget:
+        path.append(state)
+        if state.is_solution():
+            path.reverse() 
+            return path, True
+        state = deepcopy(state)
+        predictions = nn_model.predict(np.array([state.get_image_representation()]))
+        if len(predictions) == 3: #heuristic function included?
+            log_act_dist, act_dist, _ = predictions
+        else:
+            log_act_dist, act_dist = predictions
+
+        actions = state.successors()
+        action = actions[np.argmax(act_dist[0][actions])]
+        assert action in state.successors()
+        state.apply_action(action)
+        depth += 1
+    path.reverse()
+    return path, False
+
 class LCBCurriculum(RWCurriculum):
 
     def __init__(self, **kwargs):
@@ -33,26 +58,36 @@ class LCBCurriculum(RWCurriculum):
         # Requries policy to be optimized over Levin loss function
         # IMP
         log_budget = np.log(budget)
-        log_prob_traj = 0
-        depth = 1
-        state = traj[0]
-        while np.log(depth) - log_prob_traj < log_budget:
-            prev_state = deepcopy(state)
-            if depth < len(traj):
-                state = traj[depth]
-            else:
-                state.take_random_action()
-            predictions = nn_model.predict(np.array([state.get_image_representation()]))
-            if len(predictions) == 3: #heuristic function included?
-                log_act_dist, act_dist, _ = predictions
-            else:
-                log_act_dist, act_dist = predictions
-            action = get_forward_action(state, prev_state)
-            log_prob_traj += log_act_dist[0][action]
+        traj = [traj[0]]  #ignore previous trajectories
+        while True:
+            log_prob_traj = 0
+            depth = 1
+            in_loop =  -1
+            state = traj[0] #maybe maybe traj = traj[[0]] 
+            while np.log(depth) - log_prob_traj < log_budget:
+                prev_state = deepcopy(state)
+                if depth < len(traj):
+                    in_loop = 0 
+                    state = traj[depth]
+                else:
+                    in_loop = 1
+                    state.take_random_action()
+                predictions = nn_model.predict(np.array([state.get_image_representation()]))
+                if len(predictions) == 3: #heuristic function included?
+                    log_act_dist, act_dist, _ = predictions
+                else:
+                    log_act_dist, act_dist = predictions
+                action = get_forward_action(state, prev_state)
+                
+                log_prob_traj += log_act_dist[0][action]
 
-            #print(act_dist[0][action], log_act_dist[0][action], depth, np.exp(log_prob_traj))
-            depth += 1
-        return prev_state, depth - 1
+                #print(act_dist[0][action], log_act_dist[0][action], depth, np.exp(log_prob_traj))
+                depth += 1
+            path, finish  = greedy_search(nn_model, state, budget = depth)
+            if not finish:
+                print(state)
+                return prev_state, depth - 1
+            traj = path
 
     def learn_online(self, planner, nn_model):
         iteration = 1
