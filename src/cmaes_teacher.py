@@ -9,7 +9,6 @@ class CMAESTeacher:
         mean = np.array([mean, .0], ndmin=1) ##TODO: remove the padding in cmaes
         print(mean.shape)
         self.cma = CMA(mean=mean, sigma = std, population_size = batch_size)
-        self.cma._tolfun = 1e-3
 
     def get_action(self):
         #Thompson Sampling
@@ -23,6 +22,9 @@ class CMAESTeacher:
             actions.append(self.get_action())
         return actions
 
+    def stop(self):
+        return True if self.cma._sigma * self.cma._C[0,0] < 0.01 else False
+
     def batch_update(self, actions:np.ndarray, rewards:np.ndarray):
         sols = []
         for i in range(len(actions)):
@@ -31,7 +33,6 @@ class CMAESTeacher:
         self.cma.tell(sols)
 
         ## restart
-        if self.cma.should_stop():
+        if self.stop():
             print("restart")
             self.cma = CMA(mean=self.cma._mean, sigma=self.init_std, population_size=self.popsize)
-            self.cma._tolfun = 1e-3
