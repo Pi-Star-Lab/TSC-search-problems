@@ -29,7 +29,7 @@ def greedy_search(nn_model, state, budget):
     while depth < budget:
         path.append(state)
         if state.is_solution():
-            path.reverse() 
+            path.reverse()
             return path, True
         state = deepcopy(state)
         predictions = nn_model.predict(np.array([state.get_image_representation()]))
@@ -59,6 +59,7 @@ class LCBCurriculum(RWCurriculum):
         # IMP
         log_budget = np.log(budget)
         traj = [traj[0]]  #ignore previous trajectories
+        search_success = 0
         while True:
             log_prob_traj = 0
             depth = 1
@@ -67,7 +68,7 @@ class LCBCurriculum(RWCurriculum):
             while np.log(depth) - log_prob_traj < log_budget:
                 prev_state = deepcopy(state)
                 if depth < len(traj):
-                    in_loop = 0 
+                    in_loop = 0
                     state = traj[depth]
                 else:
                     in_loop = 1
@@ -83,10 +84,15 @@ class LCBCurriculum(RWCurriculum):
 
                 #print(act_dist[0][action], log_act_dist[0][action], depth, np.exp(log_prob_traj))
                 depth += 1
-            path, finish  = greedy_search(nn_model, state, budget = depth)
+            path, finish  = greedy_search(nn_model, state, budget = depth + 1)
             if not finish:
-                print(state)
+                print(state, search_success)
+                print("greedy search path")
+                for p in path:
+                    print(p)
+                print('-' * 100)
                 return prev_state, depth - 1
+            search_success += 1
             traj = path
 
     def learn_online(self, planner, nn_model):
