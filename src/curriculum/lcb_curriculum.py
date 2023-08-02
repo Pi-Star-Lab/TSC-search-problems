@@ -85,14 +85,16 @@ class LCBCurriculum(RWCurriculum):
                 #print(act_dist[0][action], log_act_dist[0][action], depth, np.exp(log_prob_traj))
                 depth += 1
             path, finish  = greedy_search(nn_model, state, budget = depth + 1)
+            print("Length:", len(path))
             if not finish:
                 print(state, search_success)
                 print("greedy search path")
                 for p in path:
                     print(p)
                 print('-' * 100)
-                return prev_state, depth - 1
+                return prev_state, depth -1 
             search_success += 1
+            print(path[0], path[-1])
             traj = path
 
     def learn_online(self, planner, nn_model):
