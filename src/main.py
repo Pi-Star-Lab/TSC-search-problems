@@ -213,6 +213,9 @@ def main():
     
     parser.add_argument('-learn-time-limit', action='store', dest='learn_time_limit', type=int, default=-1,
                         help='When to stop?')
+
+    parser.add_argument('-init-std', action='store', dest='init_std', type=int, default=4,
+                        help='initial std for CMA-ES for TSC method')
     parameters = parser.parse_args()
 
     states = {}
@@ -367,7 +370,8 @@ def main():
                                   initial_budget=int(parameters.search_budget),
                                   test_budget=parameters.test_budget,
                                   gradient_steps=int(parameters.gradient_steps),
-                                  time_limit=int(parameters.learn_time_limit))
+                                  time_limit=int(parameters.learn_time_limit),
+                                  init_std = int(parameters.init_std))
 
         elif parameters.learning_mode == "lcbc":
             curriculum = LCBCurriculum(num_states = parameters.num_prob,

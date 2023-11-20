@@ -12,16 +12,13 @@ from univar_gaussian_teacher import UnivarGaussianTeacher
 
 class TSCurriculum(RWCurriculum):
 
-    # TODO: remove init_v from this class, and perhaps put this in bandit class
-    def init_v(self, length:int, mean:int, std:float):
-        v = np.zeros(length)
-        samples = np.random.normal(loc=mean, scale=std, size = 10000)
-        samples = np.round(samples).astype(int)
-        for sample in samples:
-            if sample >= length or sample < 0:
-                continue
-            v[sample] += 1
-        return v
+    def __init__(self, **kwargs):
+
+        ### global variables could be taken as input
+        self._init_std = kwargs['init_std']
+        del kwargs['init_std']
+        super().__init__(**kwargs)
+
 
     def learn_online(self, planner, nn_model):
         iteration = 1
@@ -32,7 +29,7 @@ class TSCurriculum(RWCurriculum):
         test_solve = 0
         memory = Memory()
 
-        teacher = CMAESTeacher(batch_size=self._states_per_difficulty, mean=4, std=4)
+        teacher = CMAESTeacher(batch_size=self._states_per_difficulty, mean=4, std=self._init_std)
         ## TODO: remove this TMP!
 
         while self._time[-1] < self._time_limit:
