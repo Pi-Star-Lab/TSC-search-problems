@@ -44,6 +44,7 @@ class Bootstrap(Curriculum):
             start = time.time()
             #print("Iteration: {}:".format(iteration)) number_solved = 0
 
+            itr_solved = 0
             batch_problems = {}
             for name, state in states.items():
 
@@ -70,6 +71,7 @@ class Bootstrap(Curriculum):
 
                     if has_found_solution and puzzle_name not in current_solved_puzzles:
                         number_solved += 1
+                        itr_solved += 1
                         current_solved_puzzles.add(puzzle_name)
 
                 if memory.number_trajectories() > 0:
@@ -94,7 +96,7 @@ class Bootstrap(Curriculum):
                                                                                  end-start)))
                 results_file.write('\n')
 
-            if number_solved == 0:
+            if itr_solved == 0:
                 budget *= 2
                 print('Budget: ', budget)
 
