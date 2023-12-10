@@ -10,8 +10,8 @@ from curriculum.curriculum import Curriculum
 class Bootstrap(Curriculum):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._max_steps = 1000000
-        self._min_steps = 1
+        self._max_steps = 10000
+        self._min_steps = 5
         self._max_states = self._states_per_itr
         self._number_problems = self._max_states
 
@@ -37,13 +37,14 @@ class Bootstrap(Curriculum):
             steps = self._min_steps + random.random() * (self._max_steps - self._min_steps)
             steps = int(steps)
             states[i] = self._state_gen(steps)
-        
+
         last_puzzle = list(states)[-1]
 
         while test_solve < 1: #replacing for comparison
             start = time.time()
             #print("Iteration: {}:".format(iteration)) number_solved = 0
 
+            itr_solved = 0
             batch_problems = {}
             for name, state in states.items():
 
@@ -70,6 +71,7 @@ class Bootstrap(Curriculum):
 
                     if has_found_solution and puzzle_name not in current_solved_puzzles:
                         number_solved += 1
+                        itr_solved += 1
                         current_solved_puzzles.add(puzzle_name)
 
                 if memory.number_trajectories() > 0:
@@ -94,7 +96,7 @@ class Bootstrap(Curriculum):
                                                                                  end-start)))
                 results_file.write('\n')
 
-            if number_solved == 0:
+            if itr_solved == 0:
                 budget *= 2
                 print('Budget: ', budget)
 
