@@ -16,6 +16,7 @@ from domains.toh import TOH
 from search.puct import PUCT
 from curriculum.bootstrap import Bootstrap
 from curriculum.rw_curriculum import RWCurriculum
+from curriculum.orw_curriculum import ORWCurriculum
 from curriculum.ts_curriculum import TSCurriculum
 from curriculum.lcb_curriculum import LCBCurriculum
 
@@ -190,6 +191,7 @@ def main():
                         dest='learning_mode',
                         help='leave blank for no learning, bootstrap for \
                                 boostrapping, curr for RW curriculum, tscl for \
+                                rw for original RW algorithm\
                                 teacher-student curriculum, lcbc for levin-cost bound curriculum')
 
     parser.add_argument('--fixed-time', action='store_true', default=False,
@@ -309,7 +311,7 @@ def main():
 #     input_size = s.get_image_representation().shape
 
     KerasManager.register('KerasModel', KerasModel)
-    ncpus = int(os.environ.get('SLURM_CPUS_PER_TASK', default = 1))
+    ncpus = 1 #int(os.environ.get('SLURM_CPUS_PER_TASK', default = 1))
 
     k_expansions = 32
 
@@ -372,6 +374,19 @@ def main():
                                   gradient_steps=int(parameters.gradient_steps),
                                   time_limit=int(parameters.learn_time_limit),
                                   init_std = int(parameters.init_std))
+
+        elif parameters.learning_mode == "rw":
+            curriculum = ORWCurriculum(num_states = parameters.num_prob,
+                                  model_name = parameters.model_name,
+                                  ncpus=ncpus,
+                                  state_generator = state_gen,
+                                  test_set_path = parameters.test_path,
+                                  initial_budget=int(parameters.search_budget),
+                                  test_budget=parameters.test_budget,
+                                  gradient_steps=int(parameters.gradient_steps),
+                                  time_limit=int(parameters.learn_time_limit),
+                                  goal_gen = goal_gen)
+
 
         elif parameters.learning_mode == "lcbc":
             curriculum = LCBCurriculum(num_states = parameters.num_prob,
