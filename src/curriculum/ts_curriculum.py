@@ -28,11 +28,12 @@ class TSCurriculum(RWCurriculum):
         number_solved = 0
         total_expanded = 0
         total_generated = 0
+        prev_test_acc = 0
         budget = self._initial_budget
         test_solve = 0
         memory = Memory()
 
-        teacher = CMAESTeacher(batch_size=self._states_per_difficulty, mean=4, std=4)
+        teacher = CMAESTeacher(batch_size=self._states_per_difficulty, mean=4, std=100)
         ## TODO: remove this TMP!
 
         while test_solve < 1:
@@ -59,28 +60,29 @@ class TSCurriculum(RWCurriculum):
                                                                                  end-start)))
                 results_file.write('\n')
 
-
-
-            test_sol_qual, test_solved, test_expanded, test_generated, _, _ = self.solve(self._test_set,
-                    planner=planner, nn_model=nn_model, budget=self._test_budget, memory=memory, update=False)
-
-            self._test_solution_quality = test_sol_qual
-            self._test_expansions = test_expanded
-
-            test_solve = test_solved / len(self._test_set)
             mean_difficulty = sum(difficulties) / len(difficulties)
-            print('Iteration: {}\t Train solved: {}\t Test Solved:{}% Mean Difficulty: {}'.format(
-                iteration, number_solved / len(states) * 100, test_solve * 100, mean_difficulty))
-
             self._time.append(self._time[-1] + (end - start))
-            self._performance.append(test_solve)
             self._expansions.append(self._expansions[-1] + total_expanded)
-            if test_solved == 0:
-                self._solution_quality.append(0)
-                self._solution_expansions.append(0)
-            else:
-                self._solution_quality.append(test_sol_qual / test_solved)
-                self._solution_expansions.append(test_expanded / test_solved)
+
+            if prev_test_acc > 0.6 or (iteration - 1) % 5 == 0:
+                test_sol_qual, test_solved, test_expanded, test_generated, _, _ = self.solve(self._test_set,
+                        planner=planner, nn_model=nn_model, budget=self._test_budget, memory=memory, update=False)
+
+                self._test_solution_quality = test_sol_qual
+                self._test_expansions = test_expanded
+
+                test_solve = test_solved / len(self._test_set)
+                prev_test_acc = test_solve
+                print('Iteration: {}\t Train solved: {}\t Test Solved:{}% Mean Difficulty: {}'.format(
+                    iteration, number_solved / len(states) * 100, test_solve * 100, mean_difficulty))
+
+                self._performance.append(test_solve)
+                if test_solved == 0:
+                    self._solution_quality.append(0)
+                    self._solution_expansions.append(0)
+                else:
+                    self._solution_quality.append(test_sol_qual / test_solved)
+                    self._solution_expansions.append(test_expanded / test_solved)
 
             #TODO: get rewards
             rewards = self.get_rewards(sol_expansions, difficulties) #TODO: make it expanded
