@@ -16,6 +16,7 @@ from domains.toh import TOH
 from search.puct import PUCT
 from curriculum.bootstrap import Bootstrap
 from curriculum.rw_curriculum import RWCurriculum
+from curriculum.orw_curriculum import ORWCurriculum
 from curriculum.ts_curriculum import TSCurriculum
 from curriculum.lcb_curriculum import LCBCurriculum
 
@@ -190,6 +191,7 @@ def main():
                         dest='learning_mode',
                         help='leave blank for no learning, bootstrap for \
                                 boostrapping, curr for RW curriculum, tscl for \
+                                rw for original RW algorithm\
                                 teacher-student curriculum, lcbc for levin-cost bound curriculum')
 
     parser.add_argument('--fixed-time', action='store_true', default=False,
@@ -210,6 +212,12 @@ def main():
 
     parser.add_argument('-num-prob', action='store', dest='num_prob', type=int, default=256,
                         help='Number of problems to be considered each iteration')
+    
+    parser.add_argument('-learn-time-limit', action='store', dest='learn_time_limit', type=int, default=-1,
+                        help='When to stop?')
+
+    parser.add_argument('-init-std', action='store', dest='init_std', type=int, default=4,
+                        help='initial std for CMA-ES for TSC method')
     parameters = parser.parse_args()
 
     states = {}
@@ -303,7 +311,7 @@ def main():
 #     input_size = s.get_image_representation().shape
 
     KerasManager.register('KerasModel', KerasModel)
-    ncpus = int(os.environ.get('SLURM_CPUS_PER_TASK', default = 1))
+    ncpus = 1 #int(os.environ.get('SLURM_CPUS_PER_TASK', default = 1))
 
     k_expansions = 32
 
@@ -339,7 +347,8 @@ def main():
                                   test_set_path = parameters.test_path,
                                   initial_budget=int(parameters.search_budget),
                                   test_budget=parameters.test_budget,
-                                  gradient_steps=int(parameters.gradient_steps))
+                                  gradient_steps=int(parameters.gradient_steps),
+                                  time_limit=int(parameters.learn_time_limit))
 
         elif parameters.learning_mode == "curr":
 
@@ -351,7 +360,8 @@ def main():
                                   test_set_path = parameters.test_path,
                                   initial_budget=int(parameters.search_budget),
                                   test_budget=parameters.test_budget,
-                                  gradient_steps=int(parameters.gradient_steps))
+                                  gradient_steps=int(parameters.gradient_steps),
+                                  time_limit=int(parameters.learn_time_limit))
 
         elif parameters.learning_mode == "tscl":
             curriculum = TSCurriculum(num_states = parameters.num_prob,
@@ -361,7 +371,22 @@ def main():
                                   test_set_path = parameters.test_path,
                                   initial_budget=int(parameters.search_budget),
                                   test_budget=parameters.test_budget,
-                                  gradient_steps=int(parameters.gradient_steps))
+                                  gradient_steps=int(parameters.gradient_steps),
+                                  time_limit=int(parameters.learn_time_limit),
+                                  init_std = int(parameters.init_std))
+
+        elif parameters.learning_mode == "rw":
+            curriculum = ORWCurriculum(num_states = parameters.num_prob,
+                                  model_name = parameters.model_name,
+                                  ncpus=ncpus,
+                                  state_generator = state_gen,
+                                  test_set_path = parameters.test_path,
+                                  initial_budget=int(parameters.search_budget),
+                                  test_budget=parameters.test_budget,
+                                  gradient_steps=int(parameters.gradient_steps),
+                                  time_limit=int(parameters.learn_time_limit),
+                                  goal_gen = goal_gen)
+
 
         elif parameters.learning_mode == "lcbc":
             curriculum = LCBCurriculum(num_states = parameters.num_prob,
@@ -372,6 +397,7 @@ def main():
                                   initial_budget=int(parameters.search_budget),
                                   test_budget=parameters.test_budget,
                                   gradient_steps=int(parameters.gradient_steps),
+                                  time_limit=int(parameters.learn_time_limit),
                                   goal_gen = goal_gen)
 
 
