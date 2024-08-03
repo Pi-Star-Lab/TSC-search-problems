@@ -1,5 +1,5 @@
 ## Curriculum Generation for Learning Guiding Functions in State-Space Search Algorithms
-Implementation of the algorithms described in "Curriculum Generation for Learning Guiding Functions in State-Space Search Algorithms"
+Implementation of the algorithms described in ["Curriculum Generation for Learning Guiding Functions in State-Space Search Algorithms"](https://ojs.aaai.org/index.php/SOCS/article/view/31546)
 by S. Pendurkar, L. Lelis, N. Sturtevant, and G. Sharon, published at Symposium of Combinatorial Search (SoCS) 2024.
 
 ## Setup
